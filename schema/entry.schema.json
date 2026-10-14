@@ -1,0 +1,522 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coptic.re/schemas/entry.schema.json",
+  "title": "Coptic Reference dictionary entry",
+  "description": "One merged entry from CCL + CDO + Kaikki + corpus counts. Closed: additionalProperties is false, so an emitter that invents a field fails the build rather than silently shipping it. attributions[] is the CC BY-SA §3(b) declaration of what we changed and whose work it came from.",
+  "type": "object",
+  "required": [
+    "id",
+    "lemma",
+    "display",
+    "norm_key",
+    "translit",
+    "dialects",
+    "pos",
+    "glosses",
+    "forms",
+    "examples",
+    "corpus_refs",
+    "related_entries",
+    "media",
+    "sources",
+    "attributions",
+    "provenance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "TLA lemma id when available (e.g. C5047); otherwise a stable hash of (norm_key|pos)."
+    },
+    "lemma": {
+      "type": "string",
+      "minLength": 1
+    },
+    "display": {
+      "type": "string",
+      "minLength": 1,
+      "description": "As presented. Keeps diacritics. The <norm_key> is what we join and sort on; never display the canonical form in place of the diplomatic one."
+    },
+    "norm_key": {
+      "type": "string",
+      "minLength": 1,
+      "description": "NFC + combining marks stripped + case folded. THE JOIN KEY. Merging, dedup and lookup all use this, never raw orthography - see the enclitic case <norm orig='ⲥ' lemma='ⲛⲧⲟⲥ'>."
+    },
+    "translit": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Transliteration per scheme. Values are conventions, so a bad one is a correctness bug, not a preference.",
+      "properties": {
+        "bohairic": {
+          "type": "string"
+        },
+        "sahidic": {
+          "type": "string"
+        },
+        "layton": {
+          "type": "string"
+        },
+        "till": {
+          "type": "string"
+        },
+        "egyptological": {
+          "type": "string"
+        }
+      }
+    },
+    "dialects": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "S",
+          "B",
+          "N",
+          "A",
+          "Ak",
+          "F",
+          "L",
+          "M",
+          "P",
+          "V",
+          "W",
+          "S/B",
+          "B/S"
+        ]
+      },
+      "description": "Union across sources; never overwrite. A lemma legitimately attested in both carries both. S=Sahidic B=Bohairic N=undetermined A=Assiutic Ak=Akhmimic F=Fayumic L/M/P/V/W are further CCL codes, preserved verbatim because this project has not established their expansions and a wrong expansion is worse than an unexpanded one. CORRECTED Session 3: this enum previously read [B, S, N, S/B, B/S] and excluded eight values the real CCL v1.2-2020 actually uses (S 9418, B 2221, A 822, M 747, L 725, F 617, V 146, Ak 93, W 57, P 7). An entry with no dialect evidence from any source carries [N], which is what N means. See DECISIONS.md S3-D2."
+    },
+    "pos": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "adj",
+          "adv",
+          "art",
+          "char",
+          "conj",
+          "det",
+          "infix",
+          "interj",
+          "n",
+          "name",
+          "num",
+          "particle",
+          "pfx",
+          "phrase",
+          "prep",
+          "prep_phrase",
+          "pron",
+          "sfx",
+          "symbol",
+          "unknown",
+          "v"
+        ]
+      },
+      "description": "Controlled part-of-speech vocabulary, normalised at merge time by tools/pos.py. The enum is the same 21-value set, duplicated here deliberately: the schema is what dry_run --real and any third-party consumer validate against, so it must be self-contained."
+    },
+    "glosses": {
+      "type": "array",
+      "minItems": 1,
+      "description": "minItems 1 is a licence gate, not a content preference: every entry must carry at least one gloss with an attribution.",
+      "items": {
+        "type": "object",
+        "required": [
+          "text",
+          "lang",
+          "source",
+          "rank"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pos": {
+            "type": "string"
+          },
+          "lang": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "CCL",
+              "CDO",
+              "CDO-API",
+              "Crum",
+              "G2PTable",
+              "Kaikki",
+              "MERGE",
+              "ProjectRebuild",
+              "Scriptorium_TEI",
+              "Scriptorium_TT",
+              "TLA",
+              "TranslitTable",
+              "UD_Coptic"
+            ]
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "etymology": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "source"
+      ],
+      "description": "Kaikki's etymology prose chains (Greek / Demotic / Egyptian) are the best readable form available and are NOT reproduced by CCL, so this is a primary use for Kaikki.",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "CCL",
+            "CDO",
+            "Crum",
+            "Kaikki",
+            "MERGE"
+          ],
+          "description": "DELIBERATELY NARROWER than ALLOWED_SOURCES: an etymology comes from a lexicon, not from a corpus or treebank, so the corpus ids are not offered here. Must remain a subset of ALLOWED_SOURCES in tools/validate/nc_guard.py; tools/tests/test_guards.py enforces that."
+        },
+        "chain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "coptic"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "coptic": {
+            "type": "string",
+            "minLength": 1
+          },
+          "translation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "urn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "work": {
+            "type": "string"
+          },
+          "quality": {
+            "enum": [
+              "gold",
+              "checked",
+              "automatic",
+              "unknown"
+            ]
+          },
+          "source": {
+            "enum": [
+              "CCL",
+              "CDO",
+              "CDO-API",
+              "Crum",
+              "G2PTable",
+              "Kaikki",
+              "MERGE",
+              "ProjectRebuild",
+              "Scriptorium_TEI",
+              "Scriptorium_TT",
+              "TLA",
+              "TranslitTable",
+              "UD_Coptic"
+            ]
+          }
+        }
+      }
+    },
+    "corpus_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "urn",
+          "work_slug",
+          "occurrences"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "urn": {
+            "type": "string"
+          },
+          "freq_per_10k": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lemma_rank": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "work_slug": {
+            "type": "string",
+            "description": "Key into data/dist/corpus/manifest.json and public/data/corpus/. Needed to locate the tokens that back this ref; a urn alone does not identify a local file."
+          },
+          "work_title": {
+            "type": "string",
+            "description": "Display title. Kept beside the slug so a reader-facing page needs no lookup."
+          },
+          "occurrences": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Token count in this work. VERIFIED against the tarball by tools/tests/test_full_roundtrip.py ::test_corpus_ref_counts_match_the_tarball_exactly — a corpus_ref whose count disagrees with the corpus fails the build. Added Session 4 (D6): the first corpus_refs bake failed here because this object was closed to {urn, freq_per_10k, lemma_rank}, and the round-trip needs a work key and a checked count. See DECISIONS.md S4-D2."
+          }
+        }
+      }
+    },
+    "related_entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "lemma",
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "lemma": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "forms": {
+      "type": "array",
+      "description": "Attested inflected forms. Drives the reverse-lookup index so a learner can click any token and land on its lemma.",
+      "items": {
+        "type": "object",
+        "required": [
+          "form"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "form": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pos": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "form",
+              "inflection",
+              "romanization"
+            ],
+            "description": "romanization = a transliteration of the headword, NOT an inflection. Showing one as the other is a visible correctness bug: `xalkin` is not an inflected form of `\\u2c e7\\u2c81\\u2d15\\u2c93\\u2c9b`. Kaikki tags these with tags=[romanization] vs tags=[plural] and the distinction is carried through from tools/parse/kaikki.py."
+          }
+        }
+      }
+    },
+    "media": {
+      "type": "array",
+      "description": "images: PD historical illustration, commissioned iconography under clear terms, or non-figurative ornament ONLY. AI-generated depictions of Christ, the Theotokos, saints, angels or liturgical scenes are PROHIBITED - see GOVERNANCE.md and the image content policy.",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "src",
+          "rights"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": [
+              "image"
+            ]
+          },
+          "src": {
+            "type": "string"
+          },
+          "rights": {
+            "enum": [
+              "PD",
+              "PD-US",
+              "CC-BY-4.0",
+              "CC-BY-SA-4.0",
+              "commissioned"
+            ]
+          },
+          "source_url": {
+            "type": "string",
+            "description": "Mandatory for PD imagery. Where it came from is part of the rights."
+          },
+          "reviewer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Church-bloc reviewer who approved this image. Required before production."
+          },
+          "synthetic": {
+            "type": "boolean",
+            "default": false,
+            "description": "Only ever true for non-figurative decorative imagery."
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Which upstream sources contributed. Every id here must appear in records.csv and in ALLOWED_SOURCES.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "licence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "licence": {
+            "enum": [
+              "CC-BY-SA-4.0",
+              "CC-BY-4.0",
+              "CC-BY-SA-4.0 OR GFDL",
+              "CC-BY-NC-4.0",
+              "PD",
+              "Apache-2.0",
+              "MIT",
+              "UNKNOWN"
+            ]
+          },
+          "doi": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "attributions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "CC BY-SA 4.0 §3(b) requires indicating modifications. minItems 1 means every entry declares where each field came from AND what we did to it. 'changes' uses a controlled vocabulary so it can be aggregated - that is how we can report, in total, how much of this dictionary is verbatim. The PROJECT AUTHOR NEVER APPEARS HERE; his credit is project-level. See GOVERNANCE.md §Attribution.",
+      "items": {
+        "type": "object",
+        "required": [
+          "field",
+          "source",
+          "licence",
+          "changes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "enum": [
+              "lemma",
+              "glosses",
+              "etymology",
+              "examples",
+              "forms",
+              "related_entries",
+              "display",
+              "corpus_refs",
+              "media",
+              "translit",
+              "pos"
+            ],
+            "description": "Session 6 D2: 'pos' was added because the merge now normalises part-of-speech to the controlled vocabulary in tools/pos.py, and that IS a change to a field. Declaring it here is what makes the change attributable under CC BY-SA 3(b) instead of invisible."
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "FREE STRING, per v4 §8.2, and this is load-bearing. An attribution may cite a per-document or per-sub-source label ('Coptic Scriptorium _TT'), not only an id. The consequence is that nc_guard.py — not this schema — is the primary control on attribution provenance, because nothing here constrains the value. Emit ids from ALLOWED_SOURCES (plus MERGE) so the guard can judge them. See DECISIONS.md S2-B3."
+          },
+          "licence": {
+            "enum": [
+              "CC-BY-SA-4.0",
+              "CC-BY-4.0",
+              "CC-BY-SA-4.0 OR GFDL",
+              "PD",
+              "UNKNOWN"
+            ]
+          },
+          "doi": {
+            "type": "string"
+          },
+          "changes": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "record_ids",
+        "pipeline_version",
+        "generated"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "record_ids": {
+          "type": "object",
+          "description": "Per-source record ids, so any gloss can be traced to the exact upstream entry.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "pipeline_version": {
+          "type": "string"
+        },
+        "generated": {
+          "type": "string"
+        },
+        "collation_hash": {
+          "type": "string",
+          "description": "The sort alphabet in force when this entry was emitted. See tools/collate.py."
+        }
+      }
+    }
+  }
+}

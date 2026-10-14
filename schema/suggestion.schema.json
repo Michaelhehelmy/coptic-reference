@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coptic.re/schemas/suggestion.schema.json",
+  "title": "Coptic Reference Suggestion",
+  "description": "One community suggestion, baked into data/dist/suggestions.json by the Stage A weekly job from a public GitHub Issue. Read-only from the browser's perspective: the site never POSTs to GitHub directly.",
+  "type": "object",
+  "required": [
+    "id",
+    "target",
+    "kind",
+    "body",
+    "submitted_at",
+    "submitter_hash",
+    "source",
+    "status",
+    "baked_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^s-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{5}$",
+      "description": "Stable identifier, s-YYYY-MM-DD-NNNNN. Assigned by Stage A from the issue number and date."
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "kind",
+        "url_path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "entry",
+            "work",
+            "lesson",
+            "site"
+          ],
+          "description": "What the suggestion is about."
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Dictionary entry id (e.g. C5047), CTS URN for a work, lesson slug, or null when kind is 'site'."
+        },
+        "url_path": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "Path on this site, e.g. /dict/c5047/. Stored as a path only; never as an absolute URL, so the site works on any host."
+        },
+        "dialect": {
+          "enum": [
+            "B",
+            "S",
+            "N",
+            null
+          ],
+          "default": null,
+          "description": "Dialect the submitter was looking at. B=Bohairic, S=Sahidic, N=undetermined. Advisory: recorded so a Reviewer knows the context a correction was offered from. Not a claim about the entry itself."
+        }
+      }
+    },
+    "kind": {
+      "enum": [
+        "gloss",
+        "example",
+        "etymology",
+        "typo",
+        "parse",
+        "translation",
+        "licence",
+        "bug",
+        "feature"
+      ],
+      "description": "Mirrors the kind/* GitHub label. 'licence' is escalated same-day to reviewer/licence."
+    },
+    "body": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 8000,
+      "description": "The suggested change, in the submitter's own words. Target context and the current value are appended by the Worker, never typed by the submitter."
+    },
+    "evidence": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "Citation or argument. Optional. A suggestion citing CCL, CDO, Crum, or a published grammar carries far more weight than one without — this is stated publicly in the submission rules."
+    },
+    "contact": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200,
+      "description": "Optional, used only to give credit. Never required. Never rendered on the public site unless the submitter wrote it into the public issue body themselves."
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "From the GitHub issue created_at. Enforced two ways: the jsonschema `format` extra (Session 1 Q2) supplies a FormatChecker for semantic validity, and this `pattern` catches a malformed value even under a bare Draft202012Validator, where `format` is annotation-only. Keep both. See DECISIONS.md B-6 and Session 2 Q2.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "submitter_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$",
+      "description": "sha256(ip + UTC day + target id), truncated to 16 hex chars. DEDUP ONLY. This value is NEVER rendered in any page, never exported, and never written to a log. Stage A validates that it does not appear anywhere under public/. In the GitHub issue it lives inside an HTML comment so it is invisible in rendered Markdown but findable by the GitHub search API. If you find yourself wanting to display this, you are about to deanonymise someone."
+    },
+    "source": {
+      "enum": [
+        "github_issue",
+        "worker",
+        "email"
+      ],
+      "description": "'email' means a mailed suggestion that a Steward transcribed into an issue by hand. Every suggestion ends up as an issue; this records how it arrived."
+    },
+    "github_issue_number": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "Null only if the issue was deleted."
+    },
+    "github_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri",
+      "description": "Where endorsement happens. The site links here; it does not collect reactions itself."
+    },
+    "status": {
+      "enum": [
+        "new",
+        "triaged",
+        "needs-expert",
+        "accepted",
+        "deferred",
+        "declined",
+        "duplicate",
+        "implemented"
+      ],
+      "description": "Mirrors the status/* label. Transitions are governed in GOVERNANCE.md."
+    },
+    "endorsements": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Counts from GitHub reactions, baked weekly. Endorsement is interest, not authority — see GOVERNANCE.md.",
+      "properties": {
+        "up": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "heart": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "rocket": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+    "endorsement_source": {
+      "enum": [
+        "github_reactions",
+        "none"
+      ],
+      "default": "none"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Full GitHub label set, so the site can render facets and reviewers can filter."
+    },
+    "reviewer": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Named Reviewer who gave a verdict, or null. A Reviewer's verdict outranks endorsements in the Maintainer's decision."
+    },
+    "resolution": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when status is declined or implemented. e.g. 'merged in #512, CHANGELOG 2027.04'."
+    },
+    "decide_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "LOAD-BEARING. Set when status becomes accepted: acceptance + 12 months. Rendered on /roadmap/. A suggestion in status 'accepted' with no decide_by, or with one in the past, FAILS the build. This is what makes 'maybe after a year' a written commitment rather than a hope. NOTE: 'format': 'date' is ANNOTATION-ONLY by default in JSON Schema 2020-12 and is not enforced unless the validator supplies a FormatChecker. The 'pattern' is what actually makes a malformed date fail, on any validator. Do not remove it. See DECISIONS.md B-8.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "reaffirmations": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0,
+      "description": "How many times 'accepted' has been re-affirmed with a written reason and a new 12-month window. Capped at two: after that the only honest options are implement or decline."
+    },
+    "blocker": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when status is deferred. Shown publicly on /roadmap/. 'Deferred: waiting on TLA lemma confirmation.' Deferring without a stated blocker is not permitted."
+    },
+    "baked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Stage A assembled this record. Every item in a file shares one value. Enforced two ways: the jsonschema `format` extra (Session 1 Q2) supplies a FormatChecker for semantic validity, and this `pattern` catches a malformed value even under a bare Draft202012Validator, where `format` is annotation-only. Keep both. See DECISIONS.md B-6 and Session 2 Q2.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$"
+    }
+  }
+}
