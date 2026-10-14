@@ -398,3 +398,63 @@ the difference because every test server so far has served `.gz` undecoded.
   than claimed otherwise.
 - **The four VERIFY markers.** Unresolved, as instructed since Session 10.
 - **Pagefind#1370.** Open; review 2027-04-01.
+
+
+---
+
+## Session 16 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | Rule 11 in HANDOFF §8a + CONTRIBUTING | **DONE** | verbatim from C7 |
+| D0 | `static/js/translit.js` | **DONE** | sole `translitDisplay()` renderer |
+| D0 | `no_object_object_guard.py` | **DONE** | 94 artefacts, 56 compressed payloads; negative injects and names one file |
+| D0 | `translit_shape_guard.py` | **DONE** | 11,369 entries; string/unexpected-scheme negatives fail |
+| D0 | `test_translit_renders_string` | **DONE** | `/dict/`, `/corpus/`, and `/quiz/` render strings, not objects |
+| D1 | `tools/emit/quizgen.py` | **DONE** | 959 items in 19 banks, deterministic IDs and gzip |
+| D1 | Correct-answer traceability | **DONE** | `quiz_guard.py` checks all 959 answers |
+| D1 | Transliteration prompts | **DONE** | generated through shipped `translitDisplay()`; romanization provenance recorded |
+| D2 | `static/js/quiz.js` | **DONE** | 10-item sessions, score, localStorage, spaced repetition |
+| D2 | Quiz Playwright tests | **DONE** | completion, persistence, transliteration, export |
+| D3 | `/quiz/` route | **DONE** | works, no-JS fallback renders, Lighthouse 100/100/96/100 |
+| D4 | `quiz_guard.py` | **DONE** | clean; wrong-answer and duplicate-choice negatives fail |
+| D5 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md, README.md, HANDOFF.md, SHIP.md |
+
+### Not covered
+
+- **Shipped `translit` schemes.** All 11,369 entries currently have empty
+  transliteration objects. The quiz therefore uses source-backed
+  `forms.romanization` values, explicitly labeled, rather than asserting absent
+  scheme data.
+- **A production deployment of `/quiz/`.** Verified locally and in Chromium; the
+  production promotion decision remains Michael's.
+
+
+---
+
+## Session 16 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | Rule 11 in HANDOFF §8a + CONTRIBUTING | **DONE** | verbatim from C7 |
+| D0 | `static/js/translit.js` | **DONE** | sole `translitDisplay()` renderer |
+| D0 | `no_object_object_guard.py` | **DONE** | 94 artefacts, 56 compressed payloads; negative injects and names one file |
+| D0 | `translit_shape_guard.py` | **DONE** | 11,369 entries; string/unexpected-scheme negatives fail |
+| D0 | `test_translit_renders_string` | **DONE** | `/dict/`, `/corpus/`, and `/quiz/` render strings, not objects |
+| D1 | `tools/emit/quizgen.py` | **DONE** | 959 items in 19 banks, deterministic IDs and gzip |
+| D1 | Correct-answer traceability | **DONE** | `quiz_guard.py` checks all 959 answers |
+| D1 | Transliteration prompts | **DONE** | generated through shipped `translitDisplay()`; romanization provenance recorded |
+| D2 | `static/js/quiz.js` | **DONE** | 10-item sessions, score, localStorage, spaced repetition |
+| D2 | Quiz Playwright tests | **DONE** | completion, persistence, transliteration, export |
+| D3 | `/quiz/` route | **DONE** | works, no-JS fallback renders, Lighthouse 100/100/96/100 |
+| D4 | `quiz_guard.py` | **DONE** | clean; wrong-answer and duplicate-choice negatives fail |
+| D5 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md, README.md, HANDOFF.md, SHIP.md |
+
+### Not covered
+
+- **Shipped `translit` schemes.** All 11,369 entries currently have empty
+  transliteration objects. The quiz therefore uses source-backed
+  `forms.romanization` values, explicitly labeled, rather than asserting absent
+  scheme data.
+- **A production deployment of `/quiz/`.** Verified locally and in Chromium; the
+  production promotion decision remains Michael's.

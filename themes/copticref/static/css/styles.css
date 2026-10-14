@@ -86,3 +86,31 @@ span.tk:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
   padding: .3rem .6rem; text-decoration: none; color: inherit; }
 .btn:hover { background: color-mix(in srgb, var(--link) 10%, transparent); }
 .worklink { text-decoration: none; border-bottom: 1px solid var(--rule); }
+
+/* ── the quiz (Session 16 D3) ─────────────────────────────────────────────── */
+#quiz-controls, #quiz-app { max-width: 42rem; }
+#quiz-controls select, #quiz-controls button,
+#quiz-app button, #quiz-export, #quiz-reset {
+  font: inherit; color: inherit; background: var(--bg);
+}
+#quiz-controls select, #quiz-import-file {
+  width: 100%; max-width: 28rem; padding: .5rem; border: 1px solid var(--rule);
+  border-radius: 4px; background: var(--bg);
+}
+#quiz-start, .quiz-next, #quiz-export, #quiz-reset {
+  border: 1px solid var(--rule); border-radius: 4px; padding: .55rem .9rem;
+  min-height: 44px; cursor: pointer;
+}
+#quiz-start:hover, .quiz-next:hover, #quiz-export:hover, #quiz-reset:hover {
+  background: color-mix(in srgb, var(--link) 10%, transparent);
+}
+#quiz-start:focus-visible, .quiz-next:focus-visible,
+#quiz-export:focus-visible, #quiz-reset:focus-visible,
+#quiz-choices button.hit:focus-visible {
+  outline: 2px solid var(--link); outline-offset: 2px;
+}
+#quiz-choices button.hit { min-height: 44px; }
+#quiz-choices button.hit .choice { font-size: 1.1rem; }
+#quiz-choices button.hit.right { border-left: .3rem solid #157347; }
+#quiz-choices button.hit.wrong { border-left: .3rem solid #b3261e; }
+#quiz-choices button.hit:disabled { cursor: default; opacity: 1; }

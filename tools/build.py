@@ -197,6 +197,38 @@ def main(argv: list[str] | None = None) -> int:
               "English gloss search will not work. tools/emit/english_index.py "
               "runs in this pipeline, so this means it failed silently.", file=sys.stderr)
 
+    # 3d ── the quiz banks (Session 16 D1/D4).
+    #
+    # Emit, validate, then publish in that order. The quiz generator reads the
+    # authoritative data/dist shards and corpus tarball, never the public/ tree it
+    # is about to help populate. The guard runs before publication for the same
+    # reason the shape guards do: a wrong answer must fail the build, not the
+    # first learner who taps it.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "quizgen.py")],
+                what="quizgen")
+    if rc != 0:
+        return rc
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "quiz_guard.py")],
+                what="quiz_guard")
+    if rc != 0:
+        print("[build] quiz guard failed — refusing to publish", file=sys.stderr)
+        return rc
+    quiz_src = ROOT / "data" / "dist" / "quiz"
+    quiz_dest = PUBLIC / "data" / "quiz"
+    if not quiz_src.is_dir():
+        print("[build] FAIL — data/dist/quiz is absent after quizgen; refusing to "
+              "publish a quiz page with no questions.", file=sys.stderr)
+        return 1
+    for name in sorted(p.name for p in quiz_src.iterdir() if p.is_file()):
+        src = quiz_src / name
+        dest = quiz_dest / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        safeio.write_verified(dest, src.read_bytes())
+        claimed.add(dest.relative_to(PUBLIC).as_posix())
+        emitted.append({"path": dest.relative_to(PUBLIC).as_posix(),
+                        "source": f"data/dist/quiz/{name}",
+                        "bytes": dest.stat().st_size})
+
     # 4 ── the vault download
     rc, _ = run([sys.executable, "tools/emit/obsidian.py"], what="obsidian")
     if rc != 0:
@@ -267,6 +299,14 @@ def main(argv: list[str] | None = None) -> int:
               "public_completeness_guard.py will fail on this, so CI will catch it.",
               file=sys.stderr)
 
+    # Session 16 D0.4: transliteration must remain the documented schema object.
+    # This reads data/dist before it can be published in the wrong shape.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "translit_shape_guard.py")],
+                what="translit_shape_guard")
+    if rc != 0:
+        print("[build] translit shape guard failed — refusing to publish", file=sys.stderr)
+        return rc
+
     # Session 15 C2: published index budgets. A FAILURE, not a warning —
     # these are the only published artefacts that grow with the dataset rather
     # than with the code, and they are the two the reader fetches on a cold visit.
@@ -323,6 +363,16 @@ def main(argv: list[str] | None = None) -> int:
     safeio.write_text_verified(
         PUBLIC / "BUILD-MANIFEST.json",
         json.dumps(manifest, indent=1, ensure_ascii=False, sort_keys=True) + "\n")
+
+    # Session 16 D0.3: no rendered structured value may reach a reader.
+    # This runs after the manifest, when public/ is final, and inspects the
+    # published bytes — including decompressed JSON payloads. It must run before
+    # provenance because a leak means the tree is wrong, however well documented.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "no_object_object_guard.py")],
+                what="no_object_object_guard")
+    if rc != 0:
+        print("[build] rendered structured value found — refusing to publish", file=sys.stderr)
+        return rc
 
     # 9 ── the guard, and no exit 0 without it
     rc, out = run([sys.executable, "tools/validate/public_provenance_guard.py",

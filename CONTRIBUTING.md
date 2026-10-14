@@ -536,6 +536,27 @@ positive result. If a probe cannot succeed on a case that should work, it has no
 been tested — it has been aimed.
 
 
+## Rule 11 — structured fields have exactly one renderer
+
+Every field whose schema type is object or array has exactly one renderer, and
+every template calls it. A raw structured value in a template is a bug that
+produces `[object Object]`, `undefined`, or a concatenated mess. If two
+templates read the same structured field independently, one of them will be
+wrong.
+
+```js
+// Wrong: reads the translit *object* as if it were a string.
+`<dd>${esc(e.translit)}</dd>`                    // renders "[object Object]"
+
+// Right: the single renderer owns the schema field.
+`<dd>${esc(translitDisplay(e))}</dd>`
+```
+
+Session 16 found this exact split: the dictionary reader interpolated `translit`
+directly, while the Obsidian emitter read its keys one by one. Only the second
+could be right, and only by accident.
+
+
 ## A missing required input is a build failure, never a warning
 
 Session 14 shipped a build that printed

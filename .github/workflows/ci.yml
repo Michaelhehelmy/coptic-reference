@@ -424,7 +424,7 @@ jobs:
         run: python3 tools/validate/esm_path_guard.py
 
   playwright:
-    name: service worker + corpus reader (chromium)
+    name: service worker + corpus reader + behavioral contracts (chromium)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -447,8 +447,11 @@ jobs:
         # The SW tests assert against real built bytes: the precache list, the
         # gzip files, and the reader markup. Testing a stub proves nothing.
         run: python3 tools/build.py
-      - name: Service worker + corpus reader
-        run: python3 -m pytest tools/tests/playwright/ -q
+      - name: Browser tests plus behavioral contract suite
+        # test_behaviors.py runs here, not in the generic tests job, because it
+        # asserts against public/ built by this job. In a checkout without a
+        # built tree it would skip instead of testing.
+        run: python3 -m pytest tools/tests/playwright/ tools/tests/test_behaviors.py -q
       - uses: actions/upload-artifact@v4
         if: failure()
         with: { name: playwright-report, path: public/ }

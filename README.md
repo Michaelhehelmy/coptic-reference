@@ -479,6 +479,22 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 16 status
+
+**The learning layer now has one transliteration renderer and data-derived quizzes.**
+
+- `static/js/translit.js` owns every structured `translit` value through
+  `translitDisplay()`. The dictionary reader calls it; quiz generation calls it
+  through `tools/emit/translit_probe.mjs`.
+- `tools/emit/quizgen.py` emitted **959 items in 19 static banks**: 50 per band
+  for five dictionary quiz types, 30 per band for dialect identification, and
+  119 verse-matching items.
+- `/quiz/` offers ten-question sessions, local scorekeeping, spaced repetition,
+  JSON export/import, and a static no-JS topic list.
+- Because the shipped shards currently have no nonempty `translit` schemes,
+  transliteration prompts explicitly use source-backed Kaikki `romanization`
+  forms. They are not presented as Bohairic or Sahidic scheme values.
+
 ## Session 14 status
 
 **English search works.** It has been decorative since Session 9: Pagefind 1.5.2

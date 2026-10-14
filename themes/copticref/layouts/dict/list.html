@@ -42,10 +42,12 @@
   not blank without it.</p>
 </details>
 
-<!-- ORDER IS LOAD-BEARING. Both are defer, so they execute in document order.
-     fetch_json.js defines FetchJson, which reader.js calls on every fetch; if the
-     order flips, the dictionary has no way to read its index. Session 12 D0. -->
+<!-- ORDER IS LOAD-BEARING. All are defer, so they execute in document order.
+     fetch_json.js defines FetchJson, translit.js defines translitDisplay, and
+     reader.js calls both. Rule 11: translitDisplay is the site's only reader
+     of the schema translit object. -->
 <script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
 <script src="{{ "js/search.js" | relURL }}" defer></script>
+<script src="{{ "js/translit.js" | relURL }}" defer></script>
 <script src="{{ "js/reader.js" | relURL }}" defer></script>
 {{ end }}

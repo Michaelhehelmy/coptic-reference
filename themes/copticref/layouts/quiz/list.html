@@ -1,0 +1,75 @@
+{{ define "main" }}
+<h1>Quiz</h1>
+{{ .Content }}
+
+<noscript id="quiz-noscript">
+  <h2>Quiz topics</h2>
+  <p><strong>The interactive quiz needs JavaScript.</strong> The questions
+  themselves live in static, downloadable banks under
+  <code>/data/quiz/</code>; the browser is only the presenter. With scripting
+  off, nothing below can start a session.</p>
+  <ul>
+    <li>Coptic to English, by corpus-frequency band</li>
+    <li>English to Coptic, by corpus-frequency band</li>
+    <li>Romanization to Coptic, by corpus-frequency band</li>
+    <li>Lemma identification, by corpus-frequency band</li>
+    <li>Part-of-speech identification, by corpus-frequency band</li>
+    <li>Dialect identification, by corpus-frequency band</li>
+    <li>Verse matching, across all six corpus works</li>
+  </ul>
+  <p class="note">Difficulty follows corpus attestation: the 300 most frequent
+  lemmas are beginner, ranks 301–1,000 are intermediate, and the rest are
+  advanced.</p>
+</noscript>
+
+<form id="quiz-controls" aria-label="Quiz options">
+  <p>
+    <label for="quiz-type">Quiz type</label>
+    <select id="quiz-type" autocomplete="off">
+      <option value="coptic_to_english">Coptic to English</option>
+      <option value="english_to_coptic">English to Coptic</option>
+      <option value="transliteration_to_coptic">Romanization to Coptic</option>
+      <option value="lemma_identification">Lemma identification</option>
+      <option value="pos_identification">Part-of-speech identification</option>
+      <option value="dialect_identification">Dialect identification</option>
+      <option value="verse_matching">Verse matching</option>
+    </select>
+  </p>
+  <p>
+    <label for="quiz-band">Difficulty</label>
+    <select id="quiz-band" autocomplete="off">
+      <option value="beginner">Beginner: ranks 1–300</option>
+      <option value="intermediate">Intermediate: ranks 301–1,000</option>
+      <option value="advanced">Advanced: rank 1,001 and above</option>
+    </select>
+  </p>
+  <p><button id="quiz-start" type="button">Start ten questions</button></p>
+</form>
+
+<p id="quiz-status" class="note" role="status">Choose a quiz, then start.</p>
+<div id="quiz-app" aria-live="polite">
+  <p id="quiz-score" class="count">No questions answered yet on this browser.</p>
+  <h2 id="quiz-prompt"></h2>
+  <p id="quiz-progress" class="note"></p>
+  <ul id="quiz-choices" class="hits"></ul>
+  <p id="quiz-feedback" class="note"></p>
+</div>
+
+<h2>Your progress</h2>
+<p class="note">Scores and scheduling live in this browser's local storage. Export
+a copy if you change devices; nothing is sent anywhere.</p>
+<p>
+  <button id="quiz-export" type="button">Export progress as JSON</button>
+  <label for="quiz-import-file">Import progress</label>
+  <input id="quiz-import-file" type="file" accept="application/json">
+  <button id="quiz-reset" type="button">Clear progress on this browser</button>
+</p>
+<p id="quiz-import-status" class="note" role="status"></p>
+
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, translit.js defines
+     translitDisplay, and quiz.js calls both. Every transliteration prompt is
+     rendered through that one function. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/translit.js" | relURL }}" defer></script>
+<script src="{{ "js/quiz.js" | relURL }}" defer></script>
+{{ end }}

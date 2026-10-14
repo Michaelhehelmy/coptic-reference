@@ -407,9 +407,27 @@ not a list — the list is inside it. Now a `<div>`; accessibility 93 → 100.
 
 ### E27 — the OAuth token cannot refresh itself
 
-`wrangler pages deploy` failed with *"Your auth token has expired and could not be
+  `wrangler pages deploy` failed with *"Your auth token has expired and could not be
 refreshed because the Cloudflare auth server could not be reached"* — while
 `curl` to the same host answered fine and `wrangler whoami` still worked. Same
 Node-`fetch`-versus-`curl` split as Session 13's `pages project create`. Re-running
 the command succeeded; the deploy needed no change. `PRE_PRODUCTION_CHECKLIST.md`
 records it so it is not rediscovered as a permissions problem.
+
+---
+
+## Session 16 errata
+
+### E28 — an empty transliteration object is not a visible `[object Object]`
+
+All 11,369 emitted entries currently have `translit: {}`. That means no shipped
+dictionary page could presently display the literal bug, even though
+`reader.js` would have printed it for the first nonempty value. The fix was
+still required: latent shape bugs are not passing tests.
+
+### E29 — Kaikki romanizations are source data, not invented transliteration
+
+The shipped `translit` schemes remain empty, but 2,799 Kaikki-derived
+`forms.romanization` values exist. Quiz transliteration prompts use those values
+through the one renderer and label them as romanizations. Calling one of them
+“Bohairic” would have invented a scheme the source does not assert.

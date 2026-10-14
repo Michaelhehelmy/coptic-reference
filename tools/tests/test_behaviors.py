@@ -450,3 +450,110 @@ def test_behavior_6_token_click_keeps_lemma(origin):
     assert with_lemma, "no token in sahidic_ruth carries a lemma"
     missing = [t for t in with_lemma if not t.get("form")]
     assert not missing, f"{len(missing)} token(s) have a lemma but no form"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. A transliteration object renders as a string, not [object Object].
+#
+# Bug shape: reader.js interpolated `e.translit` directly. Because that value is
+# an object with scheme keys, the browser rendered the container instead of the
+# selected transliteration.
+#
+# Session 11 cannot supply this test from production data alone: all 11,369
+# shipped entries currently have an empty translit object, so the real dictionary
+# has no nonempty transliteration to display. This test therefore injects one
+# into C5047 in the test browser's memory only, using the same schema shape the
+# merge emits. It does not modify data/dist, public/, or the shard on disk.
+# It proves the production renderer handles a populated translit object without
+# changing the dataset to make the assertion pass.
+# ─────────────────────────────────────────────────────────────────────────────
+def test_translit_renders_string(origin):
+    pw = pytest.importorskip("playwright.sync_api")
+    import urllib.parse
+
+    shard = PUBLIC / "data" / "dist" / "dict" / "shard-013.json.gz"
+    if not shard.is_file():
+        pytest.skip("no published shard-013; run tools/build.py first")
+    with pw.sync_playwright() as playwright:
+        browser = None
+        context = None
+        try:
+            browser = playwright.chromium.launch()
+        except Exception as e:  # noqa: BLE001
+            pytest.skip(f"chromium unavailable: {e}")
+        try:
+            assert browser is not None
+            # Block the worker here: once it controls the page, its fetch handler
+            # serves the shard before Playwright's page route sees the request,
+            # and the controlled injection below would silently not happen.
+            context = browser.new_context(service_workers="block")
+            page = context.new_page()
+
+            def fulfill_with_translit(route):
+                payload = json.loads(gzip.decompress(shard.read_bytes()))
+                entries = payload.get("entries", [])
+                assert entries, "shard-013 has no entries to exercise"
+                target = next((e for e in entries if e.get("id") == "C5047"), None)
+                assert target is not None, "C5047 is not in shard-013"
+                target["translit"] = {"bohairic": "tenoou", "sahidic": "tenou"}
+                route.fulfill(
+                    status=200,
+                    content_type="application/json",
+                    body=gzip.compress(json.dumps(payload).encode("utf-8")),
+                )
+
+            page.route("**/data/dist/dict/shard-013.json.gz", fulfill_with_translit)
+            page.goto(f"{origin}/dict/?q={urllib.parse.quote('ⲧⲉⲛⲟⲩ')}")
+            page.wait_for_function(
+                "() => document.querySelectorAll('#results button.hit').length > 0",
+                timeout=25000)
+            page.locator("#results button.hit").first.click()
+            page.wait_for_selector("#entry h2", timeout=25000)
+            entry_text = page.inner_text("#entry")
+            rendered = page.content()
+            assert "[object Object]" not in entry_text, entry_text[:500]
+            assert "[object Object]" not in rendered
+            assert "tenoou" in entry_text, (
+                "the injected Bohairic transliteration did not render; "
+                f"entry says: {entry_text[:300]!r}")
+
+            # Rule 8: a second route that differs in a known way. Corpus tokens do
+            # not carry a translit field, but their panel must not leak the raw
+            # container if one ever arrives.
+            tokens = json.loads(gzip.decompress(
+                (PUBLIC / "data" / "corpus" / "sahidic_ruth" / "tokens.json.gz"
+                 ).read_bytes()))["tokens"]
+            target = next((t for t in tokens if (t.get("lemma") or "").strip()), None)
+            assert target is not None, "sahidic_ruth has no lemma-bearing token"
+            page.goto(f"{origin}/corpus/sahidic_ruth/")
+            page.wait_for_function(
+                "() => document.querySelectorAll('span.tk').length > 0",
+                timeout=25000)
+            page.locator(
+                f"section.verse#v{target['verse_index']} span.tk").nth(target["i"]).click()
+            page.wait_for_selector("#corpus-entry .btn", timeout=25000)
+            panel = page.inner_text("#corpus-entry")
+            assert target["lemma"] in panel
+            assert "[object Object]" not in page.content()
+
+            # Rule 8, third route: the quiz must expose the same renderer through
+            # its whole interaction. Read the expected prompt from the shipped
+            # bank, not from a literal, so the test compares two artefacts.
+            bank = json.loads(gzip.decompress(
+                (PUBLIC / "data" / "quiz" / "transliteration_to_coptic-beginner.json.gz"
+                 ).read_bytes()))
+            page.goto(f"{origin}/quiz/")
+            page.wait_for_selector("#quiz-start", timeout=25000)
+            page.select_option("#quiz-type", "transliteration_to_coptic")
+            page.select_option("#quiz-band", "beginner")
+            page.click("#quiz-start")
+            page.wait_for_function(
+                "() => document.querySelectorAll('#quiz-choices button.hit').length > 0",
+                timeout=25000)
+            assert page.inner_text("#quiz-prompt").strip() == bank[0]["prompt"]
+            assert "[object Object]" not in page.content()
+        finally:
+            if context is not None:
+                context.close()
+            if browser is not None:
+                browser.close()

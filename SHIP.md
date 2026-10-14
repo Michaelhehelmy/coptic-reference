@@ -11,8 +11,9 @@ The document a new maintainer reads first. Written at the end of Session 15.
 | Preview | `https://session-14.coptic-reference.pages.dev` (Session 14 build) |
 | **Production** | **`https://coptic-reference.pages.dev`** — deployed Session 15, checklist 10/10 |
 | Repository | 11 commits on `master`, clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
-| Tests | 325 passed, 22 skipped, 1 xfailed |
+| Tests | 330 passed, 22 skipped, 1 xfailed |
 | Guards | 17, all pass, all run inside `tools/build.py` |
+| Learning layer | Session 16: `/quiz/`, 959 data-derived items, browser-local progress |
 | Lighthouse | `/dict/` 90/93→**100**/96/100, `/corpus/sahidic_ruth/` 78/**92→100**/96/100 |
 
 ## What is live (on the preview)
@@ -22,6 +23,9 @@ The document a new maintainer reads first. Written at the end of Session 15.
   combining-mark stripping from shipped tables, not guessed ranges.
 - **`/corpus/<work>/`** — six parsed texts, token → lemma → dictionary → corpus
   round trip, on `verse_index` (0..N-1, unique per work).
+- **`/quiz/`** — seven data-derived quiz types in 19 static banks. Ten-question
+  sessions, localStorage scoring, spaced repetition, JSON export/import, and a
+  static no-JS topic list. Progress never leaves the browser.
 - **Offline** — the service worker registers, precaches exactly 8 declared
   entries, and serves the dictionary with the network off.
 - **CSP** — `script-src 'self' 'wasm-unsafe-eval'`, no `unsafe-inline`, zero
@@ -47,7 +51,7 @@ The document a new maintainer reads first. Written at the end of Session 15.
 .venv/bin/python tools/fetch/fetch_work.py --check
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 .venv/bin/python tools/build.py            # must print "guard PASSED"
-.venv/bin/python -m pytest tools/tests -q  # 325 passed, 22 skipped, 1 xfailed
+.venv/bin/python -m pytest tools/tests -q  # 330 passed, 22 skipped, 1 xfailed
 ```
 
 Needs Hugo 0.128.0 and Node 22 on PATH. Pagefind resolves from

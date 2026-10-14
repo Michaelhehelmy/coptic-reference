@@ -619,6 +619,18 @@ This is the same shape as Rules 7, 8 and 9: each exists because something passed
 or reported cleanly while doing nothing useful. A probe that reports 0 is a
 component that does nothing, and Rule 7's remedy applies to it too.
 
+**Rule 11. Every field whose schema type is object or array has exactly one
+renderer, and every template calls it. A raw structured value in a template is
+a bug that produces `[object Object]`, `undefined`, or a concatenated mess. If
+two templates read the same structured field independently, one of them will be
+wrong.**
+
+Session 16 is the evidence. `static/js/reader.js` interpolated the schema's
+`translit` object directly, while the Obsidian emitter read its keys one at a
+time. One of the two could not be right: the reader printed
+`[object Object]` for any nonempty transliteration. `static/js/translit.js`
+now owns the field, and all renderers call `translitDisplay()`.
+
 ## 9. Emergency procedures
 
 Full commands and rollback plans: **`RUNBOOK.md`**. In short:

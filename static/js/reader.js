@@ -265,7 +265,7 @@ async function show(nk) {
       <dt>Part of speech</dt><dd>${(e.pos || []).map(esc).join(", ")}
         ${(e.pos || []).includes("unknown")
           ? '<span class="note">not recorded by any source — shown, not hidden</span>' : ""}</dd>
-      ${e.translit ? `<dt>Transliteration</dt><dd>${esc(e.translit)}</dd>` : ""}
+      ${translitDisplay(e) ? `<dt>Transliteration</dt><dd>${esc(translitDisplay(e))}</dd>` : ""}
       <dt>Dialects</dt><dd>${dialectChips(e.dialects)}</dd>
     </dl>
     ${glosses ? `<h3>Glosses</h3><ul>${glosses}</ul>` : ""}
