@@ -1,0 +1,24 @@
+# Pipeline dependencies. Apache-2.0 / MIT / PSF throughout - no copyleft.
+#
+# NOTE: none of these are on the reading path. The built site is static files.
+# lxml      - streaming TEI/PAULA XML for CCL + CDO
+# regex     - Unicode-aware regex; Python's stdlib re lacks \p{} classes, which
+#             the _TT scanner needs for the Coptic blocks
+# unicodedata2 - newer Unicode database than the stdlib on older Pythons; the
+#             collation module reads Unicode character NAMES, so an out-of-date
+#             stdlib database can make a letter unresolvable
+# pyyaml    - sources.lock and shipped.toml
+#
+# Dev/test only:
+# pytest     - the contract suite
+# jsonschema - validates emitted records against schema/*.schema.json
+lxml>=5.3
+regex>=2024.11
+unicodedata2>=15.1
+PyYAML>=6.0
+pytest>=8.0
+# Session 1 Q2: the [format] extra is REQUIRED, not optional. It supplies the
+# FormatChecker that makes `format: date` / `format: date-time` enforce rather than
+# merely annotate. Without it decide_by/submitted_at/baked_at are only shape-checked
+# by the `pattern` in the schema. See DECISIONS.md B-6.
+jsonschema[format]>=4.23
