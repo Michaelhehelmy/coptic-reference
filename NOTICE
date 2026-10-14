@@ -1,0 +1,88 @@
+Coptic Reference
+Copyright 2026 Michael Helmy
+
+This product includes software developed by Michael Helmy
+(project author and maintainer), licensed under the Apache License 2.0.
+
+--------------------------------------------------------------------------
+NOTE ON SCOPE
+--------------------------------------------------------------------------
+The SOFTWARE in this repository — the pipeline, the Hugo theme, the client-side
+JavaScript, and the suggestion Worker — is authored by Michael Helmy.
+
+The DATA compiled into it is not. The lexicons, corpora and treebanks are the
+work of other people and institutions. Under CC BY-SA 4.0, those originators
+must be credited MORE prominently than the compiler, not less.
+
+The authoritative, complete, machine-generated list is /licences/, built from
+data/dist/provenance/LICENSES.csv. Named individuals are thanked on /credits/.
+
+--------------------------------------------------------------------------
+
+UPSTREAM DATA ORIGINATORS
+
+Comprehensive Coptic Lexicon (CCL) v1.2
+  BBAW; DDGLC (Freie Universität Berlin)
+  Dylan M. Burns, Frank Feder, Katrin John, Maxim Kupreyev and contributors
+  CC BY-SA 4.0 — https://doi.org/10.17169/refubium-27566
+
+Coptic Dictionary Online (CDO)
+  KELLIA alliance — Akademie der Wissenschaften zu Berlin, BBAW, DDGLC,
+  Freie Universität Berlin, Universität Göttingen, Georgetown University
+  CC BY-SA 4.0 — https://doi.org/10.17169/refubium-2333
+
+Coptic Scriptorium corpora v6.3.0 and Coptic NLP Pipeline
+  Caroline T. Schroeder (University of the Pacific)
+  Amir Zeldes (Georgetown University)
+  Elizabeth Platte, Stephan Claassen and contributors
+  Corpora: per-document licence, predominantly CC BY-SA 4.0
+  coptic-nlp: Apache-2.0
+  https://github.com/CopticScriptorium/corpora
+
+Universal Dependencies — Coptic Scriptorium treebank
+  Amir Zeldes & Mitchell Abrams (2018)
+  CC BY-SA 4.0
+
+Universal Dependencies — Bohairic treebank
+  Amir Zeldes, Nina Speransky, Nicholas E. Wagner, Caroline T. Schroeder (2025)
+  CC BY 4.0
+
+Thesaurus Linguae Aegyptiae
+  BBAW — Johannes Dümichen et al.
+  CC BY
+
+Crum, A Coptic Dictionary (1925 / 1939 impression)
+  W. O. J. Crum
+  Public domain
+
+Wiktextract / kaikki.org
+  Tatu Ylönen (2022)
+  CC BY-SA 4.0 OR GFDL (dual)
+
+KELLIA project — funded by a joint NEH–DFG bilateral grant
+  Göttingen, BBAW, ADW, Georgetown, Münster, Pacific
+
+--------------------------------------------------------------------------
+
+THIRD-PARTY SOFTWARE
+
+Keyman `coptic_greek` and `coptic_qwerty` keyboard layouts
+  Michael Everson — MIT
+Antinoou / Antinoou Italic webfonts — Andreas R. P. — Apache-2.0
+Noto Sans Coptic — Google — SIL Open Font License 1.1
+
+eScriptorium is PSL-1.0; kraken is Apache-2.0. Both may be integrated.
+CopticScriptorium/OCR is GPL-3.0 and is invoked SEPARATELY, never linked into
+this Apache-2.0 tree. See RUNBOOK.md and HANDOFF.md §8.
+
+--------------------------------------------------------------------------
+
+A NOTE THE PROJECT OWES ITS UPSTREAM
+
+The Coptic Scriptorium maintainers lost their NEH funding in 2025 and are still
+maintaining the corpus, the NLP pipeline and the OCR that this entire project
+depends on. They are unpaid for that work. They are credited here prominently
+and deliberately.
+
+If you are one of the people named above and something is misattributed, that is
+a licence incident, not a typo. See RUNBOOK.md §4.

@@ -1,0 +1,34 @@
+# Corpus tarball is a COMPRESSED BINARY and is not meaningfully diffable (v4 §6.1).
+# Its review surface is data/dist/manifest.json: per-work fingerprints, verse
+# counts and licences. Marking it binary stops git from attempting to diff it or
+# from mangling bytes on checkout on a platform that would helpfully mangle them.
+*.tar.gz    binary
+*.zip       binary
+*.mlmodel   binary
+
+# Normalise text files in the repo; leave everything else alone.
+*               text=auto eol=lf
+*.py            text eol=lf
+*.md            text eol=lf
+*.json          text eol=lf
+*.jsonl         text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.toml          text eol=lf
+*.ts            text eol=lf
+*.css           text eol=lf
+*.js            text eol=lf
+*.html          text eol=lf
+*.conllu        text eol=lf
+*.tt            text eol=lf
+*.tt.in         text eol=lf
+
+# Never touch line endings in these.
+*.pdf           binary
+*.png           binary
+*.jpg           binary
+*.webp          binary
+*.woff2         binary
+*.ttf           binary
+*.ogg           binary
+*.mp3           binary
