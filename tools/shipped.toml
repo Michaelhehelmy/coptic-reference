@@ -1,0 +1,106 @@
+# tools/shipped.toml — which corpus works the site (and the reader vault) ship.
+#
+# This is the switch between "we have parsed it" and "we publish it". The
+# corpus roll-out order is CLOSED (v4 §10.3) and is encoded here as data, not as
+# code, so changing the shipped set is a reviewable diff and never a code change.
+#
+# Order matters: it is liturgical -> biblical -> patristic -> monastic, and it is
+# the *tier* order, not alphabetical. Monastic (Shenoute) is deliberately LAST.
+# Its clitic chains and non-standard vocabulary are the hardest text in the
+# project and the wrong on-ramp for a beginner. See v4 §10.3 for the reasoning;
+# do not "fix" the order by alphabetising it.
+#
+# `slug` must match the stem of data/dist/corpus/<slug>.json.
+# `tier` is metadata for /dialects and for the coverage badge (v4 §10.2).
+# `dialect` drives the Bohairic honesty rules: where Bohairic coverage is thin
+# the interface must say so rather than silently substituting Sahidic.
+
+[[work]]
+slug = "bohairic_liturgy_lauds"
+title = "Lauds (Common Prayers)"
+tier = "liturgical"
+dialect = "B"
+urn = "urn:cts:copticLit:ot.liturgy.lauds"
+alignment = "partial"
+note = "Highest community value and lowest risk: this is what the church uses weekly."
+
+[[work]]
+slug = "bohairic_theotokia"
+title = "Theotokia"
+tier = "liturgical"
+dialect = "B"
+urn = "urn:cts:copticLit:ot.liturgy.theotokia"
+alignment = "partial"
+
+[[work]]
+slug = "bohairic_common_prayers"
+title = "Common Prayers"
+tier = "liturgical"
+dialect = "B"
+urn = "urn:cts:copticLit:ot.liturgy.commonprayers"
+alignment = "partial"
+
+[[work]]
+slug = "sahidic_ruth"
+title = "Ruth"
+tier = "biblical"
+dialect = "S"
+urn = "urn:cts:copticLit:ot.ruth"
+alignment = "full"
+note = "Fully aligned word-for-word. The reference work for cross-dialect comparison."
+
+[[work]]
+slug = "bohairic_mark"
+title = "Mark"
+tier = "biblical"
+dialect = "B"
+urn = "urn:cts:copticLit:nt.mark"
+alignment = "full"
+note = "Exists in both dialects; the most instructive pair for a learner."
+
+[[work]]
+slug = "bohairic_1corinthians"
+title = "1 Corinthians"
+tier = "biblical"
+dialect = "B"
+urn = "urn:cts:copticLit:nt.1cor"
+alignment = "full"
+
+[[work]]
+slug = "lausiac_history"
+title = "Lausiac History"
+tier = "patristic"
+dialect = "S"
+urn = "urn:cts:copticLit:saecul.monasticum.lausiac"
+alignment = "none"
+note = "No public-domain aligned translation yet; text-only in the vault."
+
+[[work]]
+slug = "life_of_isaac"
+title = "Life of Isaac"
+tier = "patristic"
+dialect = "S"
+urn = "urn:cts:copticLit:saecul.monasticum.vita.isaac"
+alignment = "none"
+
+[[work]]
+slug = "martyrdom_of_victor"
+title = "Martyrdom of Victor"
+tier = "patristic"
+dialect = "S"
+urn = "urn:cts:copticLit:saecul.martyrologium.victor"
+alignment = "none"
+
+# Monastic tier. Shipped = false so nothing is published before a linguist signs
+# off on the segmentation. Listed so the tier is visible and auditable rather
+# than absent, and so flipping the switch is a one-word diff.
+
+[[work]]
+slug = "shenoute_eagerness"
+title = "Eagerness for Martyrdom"
+tier = "monastic"
+dialect = "S"
+urn = "urn:cts:copticLit:saecul.monasticum.shenoute.eagerness"
+shipped = false
+alignment = "none"
+note = "NOT SHIPPED. Shenoute is where the grammar gets hard, not where the language gets useful."

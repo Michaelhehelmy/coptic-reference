@@ -1,0 +1,239 @@
+# tools/sources.lock — every input, pinned.
+#
+# A pin is not decoration. Without sha256 + bytes + snapshot, the build is not
+# reproducible and "the build failed" is indistinguishable from "upstream
+# changed". fetch_all.py verifies each pin and HARD-FAILS on mismatch, which
+# means an upstream change surfaces as a human decision rather than a shrug.
+#
+# Values verified 2026-10-03 against the live upstream. See DECISIONS.md.
+
+# ── Kaikki / Wiktextract ────────────────────────────────────────────────────
+[kaikki]
+url              = "https://kaikki.org/dictionary/Coptic/kaikki.org-dictionary-Coptic.jsonl"
+sha256           = "7257d4f17a9380c924a000c799d7fd040f1319a1a44b9837782b7bab9cbafae6"
+bytes            = 62813016
+records          = 3293
+snapshot         = "2026-10-03"
+extraction_date  = "2026-09-28"
+wiktionary_dump  = "2026-09-02"
+lang_code        = "cop"
+# kaikki.org describes the data as being under the same licences as Wiktionary:
+# CC BY-SA 4.0 *and* GFDL. The dual option is preserved deliberately - reducing
+# it silently to CC BY-SA would not be accurate. See DECISIONS.md open Q2.
+licence          = "CC-BY-SA-4.0 OR GFDL"
+cite             = "Ylönen, T. (2022). Wiktextract: Wiktionary as Machine-Readable Structured Data. LREC 2022, pp. 1317-1325."
+role             = "SUPPLEMENT ONLY - 3,293 of ~11,500 entries. Not the dictionary backbone."
+drift_gate       = "records < 2500 fails the build"
+
+# ── Comprehensive Coptic Lexicon ─────────────────────────────────────────────
+[ccl]
+doi              = "10.17169/refubium-27566"
+version          = "1.2-2020"
+licence          = "CC-BY-SA-4.0"
+file             = "Comprehensive_Coptic_Lexicon-v1.2-2020.xml"
+url              = "https://raw.githubusercontent.com/KELLIA/dictionary/master/xml/Comprehensive_Coptic_Lexicon-v1.2-2020.xml"
+# Session 3: fetched and pinned. 11,283 entries measured by tools/parse/tei.py.
+sha256           = "ace84fce11b76386a6adb9888b2cb947056954fc9fe9c04aa0676b1f595fd43d"
+bytes            = 12342431
+entries          = 11283
+role             = "BACKBONE - primary sense data, TLA ids, dialect flags"
+originators      = "BBAW; DDGLC (Freie Universität Berlin) - Burns, Feder, John, Kupreyev + contributors"
+note             = "Mirror hosted in KELLIA/dictionary; content is the BBAW/DDGLC release. Measured: 11,248 entries carry an English gloss, 35 do not; usg type=geo uses ELEVEN values (S B A M L F V Ak W P and '?'), not the three the schema contemplates."
+
+# ── Coptic Dictionary Online ────────────────────────────────────────────────
+[cdo]
+# SESSION 4 Q3: CDO ships in v1 WITHOUT being ingested. There is no CDO TEI file,
+# no CDO JSON, and coptic-dictionary.org serves an SPA at every /api/* path. The
+# parser in tools/parse/tei.py has NO cdo dialect, because inventing one would be
+# guessing at a format nobody has seen (see DECISIONS.md S3-A2). This entry stays
+# because CDO is a real, allowlisted, CC BY-SA source we intend to ingest once
+# there is a lawful export path. /licences/ says so publicly.
+repo             = "github.com/KELLIA/dictionary"
+ingested         = false
+ingest_blocker   = "no export path; API returns an SPA shell"
+doi              = "10.17169/refubium-2333"
+licence_data      = "CC-BY-SA-4.0"
+licence_code      = "Apache-2.0"
+role             = "BACKBONE - URN-linked examples, corpus frequencies, MWEs"
+originators      = "KELLIA alliance - ADW, BBAW, DDGLC, FU Berlin, Göttingen, Georgetown"
+note             = "No top-level LICENSE file in the repo; terms are README-only. Licence recorded here and in LICENSES.csv."
+
+# ── Coptic Scriptorium corpora ──────────────────────────────────────────────
+[corpora]
+repo             = "github.com/CopticScriptorium/corpora"
+# Session 4: pinned for the first time. The commit below is the tree Session 1
+# cloned and tools/parse/tt.py was verified against, so it is not a version
+# somebody asserted — it is the exact content that produced 85 Ruth verses.
+url              = "https://github.com/CopticScriptorium/corpora/archive/3ac067f1709a0012daf39ea8da2fac79980176a5.tar.gz"
+commit           = "3ac067f1709a0012daf39ea8da2fac79980176a5"
+commit_date      = "2026-07-27"
+sha256           = ""          # of the git tree, not a release tarball; see below
+pin_method       = "git-commit-sha"
+version          = "6.3.0"
+released         = "2026-07-23"
+words            = 2380000
+licence          = "per-document"          # read from each _TT <meta license=...>
+licence_dominant = "CC-BY-SA-4.0"
+role             = "CORPUS OF RECORD - text, POS, lemma, dependency parse, aligned translations"
+originators      = "Caroline T. Schroeder (U Pacific), Amir Zeldes (Georgetown), Elizabeth Platte, Stephan Claassen + contributors"
+format_parsed    = "_TT  (TreeTagger-style SGML - NOT well-formed XML; see tools/parse/tt.py)"
+note             = "Licence is PER DOCUMENT and must never be assumed from the site footer. Honour the stricter per-document value."
+
+# ── Universal Dependencies treebanks ─────────────────────────────────────────
+
+
+# ── corpus works (per-work byte pins, Session 7 D1) ──
+# A commit pin says which tree; these say which BYTES we parse.
+
+[corpora.works."bohairic_1corinthians"]
+sha256 = "b42c2c8e70a07f75909c07abb27e2a58b6631e6e30381aa2583e7000271ceeca"
+bytes  = 2598343
+
+[corpora.works."bohairic_mark"]
+# Session 8 D1: this pin was corrupted by a botched regex restore during the
+# Session 8 D8 negative control, then repaired BY HAND (C1: only a human changes
+# a pin). Recomputed from the 16 .tt members; value unchanged from fetch.
+sha256 = "ca42f1f4ebb2bfe6df6ca4a4d70d34da7bff8066c0935e5fe69c3cb7c6516540"
+bytes  = 4123274
+
+[corpora.works."lausiac_history"]
+sha256 = "80e477b8cee8e88ab67ef49957259d7f40fedcdf75a46d5a83a42c170facf755"
+bytes  = 2667596
+
+[corpora.works."life_of_isaac"]
+sha256 = "61894a88a14c6146a03340b6531ec1042da2da1085dc928cce2c9687f3875925"
+bytes  = 3348136
+
+[corpora.works."martyrdom_of_victor"]
+sha256 = "30cc770e91c06293969e8a04fb645e6f32d8f6cb72e5bd9f322678cd03caf3ed"
+bytes  = 4002332
+
+[corpora.works."sahidic_ruth"]
+sha256 = "6c3fff046a053e12ddedb8c151451cfb778632c5dfbde882d6199c7de97634c3"
+bytes  = 753928
+
+# ── non-redistributable (CC BY-NC) sources ──────────────────────────────
+# Listed so the boundary is visible. None of their content may reach data/dist
+# or public/; nc_guard.py enforces that and fails closed.
+
+[nc_only."AnkiDeck"]
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+[nc_only."LearnersGrammar"]
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+[nc_only."LoCPrimers"]
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+[nc_only."Manley2019"]
+# VERIFY: reconstructed 2026-10-06 — licence CC-BY-NC-4.0 asserted from the source, not re-fetched.
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+[nc_only."ShishaHalevy"]
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+[nc_only."Younan2005"]
+licence       = "CC-BY-NC-4.0"
+allowlisted = false
+ingested    = false
+scope       = "content/nc only"
+
+# ── project-authored sources ─────────────────────────────────────────────────
+# We wrote these, so there is no upstream url to pin. `authored = true` is what
+# exempts them from Q2's url+sha256 rule, and it is deliberate: inventing an url
+# would be provenance from memory (invariant 7).
+
+[project_rebuild]
+# ProjectRebuild: the project itself (merged entries, emitted artefacts).
+authored    = true
+licence     = "Apache-2.0"
+scope       = "data/dist"
+reference   = "this repository"
+
+[translit_table]
+# TranslitTable: transliteration tables, derived from CCL.
+authored    = true
+licence     = "Apache-2.0"
+scope       = "data/dist"
+reference   = "this repository"
+
+[g2p_table]
+# G2PTable: grapheme-to-phoneme tables, derived from CCL/CDO.
+authored    = true
+licence     = "Apache-2.0"
+scope       = "data/dist"
+reference   = "this repository"
+
+[merge_pseudo]
+# MERGE: the merge step's own provenance, not an upstream source.
+authored    = true
+licence     = "Apache-2.0"
+scope       = "data/dist"
+reference   = "this repository"
+
+[crum]
+# VERIFY: reconstructed 2026-10-06 — originators/reference from the 1925 print book; not re-derived. Session 8 D1.
+licence        = "PD"
+name           = "A Coptic Dictionary (Crum)"
+originators    = "Crum, W. O. J."
+reference      = "1925 / 1939 impression"
+scope          = "data/dist"
+pin_impossible = "1925 printed book; no upstream digital artefact exists to hash"
+
+[tla]
+# VERIFY: reconstructed 2026-10-06 — url from the service homepage; not re-fetched. Session 8 D1.
+licence        = "CC-BY-SA-4.0"
+name           = "Thesaurus Linguae Aegyptiae"
+originators    = "TLA (MPIWG, BBAW)"
+reference      = "https://aaew.bbaw.de/tla/"
+scope          = "data/dist"
+pin_impossible = "live web service; a hash is not a stable pin, only a snapshot id"
+
+[ud_coptic]
+licence        = "CC-BY-4.0"
+name           = "UD Coptic-Scriptorium"
+originators    = "UD, Leipzig"
+url            = "https://github.com/UniversalDependencies/UD_Coptic-Scriptorium"
+sha256         = "1660f992dd471dd22f5db940b9305266fd90208a8c4e5ef6731c1412d8d07c18"      # over the 4 local files, length-prefixed, name order
+bytes          = 5818692       # 5,819,786 total
+pin_method     = "sha256-of-local-files"
+note           = "licence corrected to CC-BY-4.0 (Session 3). Session 7: sha256 restored after the lock was truncated; these are the bytes tools/parse/conllu.py read."
+
+# REMOVED from ALLOWED_SOURCES 2026-10-04 (Session 4 Q2); re-verified absent
+# 2026-10-10 (Session 10 C6): still absent. Measured this session with
+#   python3 -c "import sys;sys.path.insert(0,"tools/validate");import nc_guard;print("UD_Bohairic" in nc_guard.ALLOWED_SOURCES)"
+# -> False
+# URL checked : https://github.com/UniversalDependencies/UD_Coptic-Bohairic  -> HTTP 404
+# The treebank is gone, so it is RESERVED here rather than removed outright:
+# re-adding it is a one-line diff if it ever returns.
+[ud_bohairic]
+# VERIFY: reconstructed 2026-10-06 — licence CC-BY-NC-4.0 from the UD repo convention; treebank 404 so unverifiable. Session 8 D1.
+licence       = "CC-BY-NC-4.0"   # known; only its treebank is 404
+allowlisted = false
+ingested    = false
+scope       = "reserved"
+http_status = "404"      # measured in Session 4: the treebank is gone
+url         = ""
+sha256      = ""
+note        = "Session 4 Q2: removed from ALLOWED_SOURCES and reserved here, so re-adding is a one-line diff. See PRE_LAUNCH.md."
+
+# HUMAN EDIT (Session 8 C1): the liturgical works were never found upstream.
+[corpora.works."bohairic_theotokia"]
+sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+bytes  = 0
+note   = "no upstream source; outreach by Michael (C5)"
