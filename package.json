@@ -1,0 +1,23 @@
+{
+  "name": "coptic-reference",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static, offline-capable reference for the Coptic language. No runtime dependencies on the reading path.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "hugo --gc --minify && node tools/emit/pagefind_index.mjs && node tools/emit/sw_gen.mjs",
+    "dev": "hugo server",
+    "test": ".venv/bin/python -m pytest tools/tests -v",
+    "validate": ".venv/bin/python tools/validate/collation_guard.py"
+  },
+  "devDependencies": {
+    "hugo-bin": "0.148.1",
+    "pagefind": "1.5.2"
+  },
+  "comments": {
+    "pagefind": "PINNED EXACTLY, no caret. v4 §2.2: Pagefind runs in ONE pass via createIndex/addDirectory/addCustomRecord/writeFiles. Its output must be byte-reproducible across bakes, which a floating version would break.",
+    "hugo-bin": "Pinned so local and Cloudflare Pages builds agree. Cloudflare does NOT install Hugo; the build command fetches the extended .deb at the pinned version (v4 §5.3).",
+    "no-deps": "There are no runtime dependencies. Everything served to a reader is static HTML/CSS/JS/JSON. The Worker in workers/suggest/ is the only runtime component in the project and has zero dependencies."
+  }
+}

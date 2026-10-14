@@ -1,0 +1,9 @@
+{{ define "main" }}
+<h1>{{ .Title }}</h1>
+{{ .Content }}
+{{ if .Content }}
+  {{ .Pages }}
+{{ else }}
+<ul>{{ range .Site.RegularPages }}{{ if ne .Section "" }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}{{ end }}</ul>
+{{ end }}
+{{ end }}

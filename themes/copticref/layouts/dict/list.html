@@ -1,0 +1,51 @@
+{{ define "main" }}
+<h1>Dictionary</h1>
+{{ .Content }}
+
+{{/* The reader's markup. Session 10 D1: reader.js drove #q, #results, #entry,
+     #count-all and #noscript-note, and NONE of them existed — the /dict/ page
+     was markdown. Playwright test 2 caught it: offline the page rendered its
+     heading and then nothing at all, because there was nothing for the script
+     to fill in. A reader that is written but not mounted is not a reader. */}}
+<noscript id="noscript-note">
+  <p class="note"><strong>The interactive reader needs JavaScript.</strong>
+  The data is all here — it is fetched by your browser, not built into the page,
+  so with scripting off there is nothing to show. The provenance tables and the
+  corpus do not need it: see <a href="{{ "/licences/" | relURL }}">Licences</a>
+  and <a href="/corpus/">Corpus</a>.</p>
+</noscript>
+
+<p id="count-all" class="count">Loading the index …</p>
+<p><label for="q" class="visually-hidden">Search headwords</label>
+<input id="q" type="search" placeholder="ⲧⲉⲛ — search headwords, or a gloss in English"
+       autocomplete="off" spellcheck="false" autocapitalize="off"></p>
+
+<div class="reader">
+  <!-- A <div>, not a <ul>. reader.js injects "<p class=count>…</p><ul class=hits>…"
+       into this element, so a <ul> here put a <p> directly inside a list and
+       Lighthouse flagged "Lists do not contain only <li> elements" on every
+       /dict/ load. The container is not itself a list; the list is inside it. -->
+  <div id="results" class="hits"></div>
+  <article id="entry" class="entry"><p class="note">Pick a headword.</p></article>
+</div>
+
+<!-- No-JS browse: letter groups, static, from the pinned alphabet. Works with
+     scripting off and gives the reader something to do rather than an apology. -->
+<details id="browse">
+  <summary>Browse by letter</summary>
+  <ul class="letters">
+    {{ range seq 1 22 }}
+    <li><span class="coptic">{{ index (slice "ⲁ" "ⲃ" "ⲅ" "ⲇ" "ⲉ" "ⲋ" "ⲍ" "ⲏ" "ⲙ" "ⲛ" "ⲝ" "ⲟ" "ⲡ" "ⲣ" "ⲥ" "ⲧ" "ⲩ" "ⲭ" "ϣ" "ϩ" "ϭ") (sub . 1) }}</span></li>
+    {{ end }}
+  </ul>
+  <p class="note">Letter browsing needs JavaScript too. It is here so the page is
+  not blank without it.</p>
+</details>
+
+<!-- ORDER IS LOAD-BEARING. Both are defer, so they execute in document order.
+     fetch_json.js defines FetchJson, which reader.js calls on every fetch; if the
+     order flips, the dictionary has no way to read its index. Session 12 D0. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/search.js" | relURL }}" defer></script>
+<script src="{{ "js/reader.js" | relURL }}" defer></script>
+{{ end }}

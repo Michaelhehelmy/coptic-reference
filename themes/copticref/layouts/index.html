@@ -1,0 +1,12 @@
+{{ define "main" }}
+<h1>{{ .Site.Title }}</h1>
+{{ .Content }}
+<p>This is a shell. The dictionary, the corpus reader and search are not wired
+yet — the data they need is built and licence-checked, and it is fetched by the
+browser rather than baked into a page.</p>
+<ul>
+  <li><a href="{{ "/dict/" | relURL }}">Dictionary</a> — the shell for the entry reader</li>
+  <li><a href="{{ "/dialects/" | relURL }}">Dialects</a> — what the sources actually record</li>
+  <li><a href="{{ "/licences/" | relURL }}">Licences</a> — every source, and what was excluded</li>
+</ul>
+{{ end }}

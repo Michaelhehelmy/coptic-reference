@@ -1,0 +1,18 @@
+<footer class="site">
+  <p>{{ .Site.Params.description }}</p>
+  <p>Text and data under CC BY-SA 4.0 unless a page says otherwise; project code
+  Apache-2.0. See <a href="{{ "/licences/" | relURL }}">Licences</a>.</p>
+  <p id="net" class="note" hidden>Offline — showing cached pages.</p>
+</footer>
+
+<!--
+  Service worker registration and the offline indicator now live in
+  /js/sw-register.js (Session 12 D2 / C3).
+
+  They were inline here, which forced a choice between weakening the
+  Content-Security-Policy with 'unsafe-inline' or shipping a policy the build
+  immediately violates. Session 11's DEPLOY.md documented that conflict instead
+  of resolving it. A file served from the origin satisfies script-src 'self', so
+  the CSP can stay tight.
+-->
+<script src="{{ "js/sw-register.js" | relURL }}" defer></script>

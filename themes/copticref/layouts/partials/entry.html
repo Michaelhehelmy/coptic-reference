@@ -1,0 +1,38 @@
+{{/*
+  A dictionary entry. Takes the entry dict from data/dist, NOT from Hugo's
+  context — this partial is deliberately unused by the layouts today, because
+  wiring it would mean reading 11,369 entries at build time and blowing the
+  30-second budget (Session 8 D6).
+
+  It exists so the SHAPE is fixed and reviewable before the reader is built:
+  one headword, its part of speech, the dialects the sources actually record, and
+  the corpus citations. The [N] dialect renders a visible note rather than
+  being hidden — Q4, and C6 for `unknown` POS.
+*/}}
+<article class="entry">
+  <h2><span class="coptic">{{ .lemma }}</span></h2>
+  <dl>
+    <dt>Part of speech</dt>
+    <dd>{{ range .pos }}{{ . }}{{ end }}
+      {{- if eq (index .pos 0) "unknown" }}
+      <span class="note">not recorded by any source — shown rather than hidden</span>
+      {{- end }}
+    </dd>
+    {{ with .dialects }}
+    <dt>Dialects</dt>
+    <dd>{{ range . }}{{ . }} {{ end }}
+      {{- if eq . (slice "N") }}
+      <span class="note">dialect not recorded — this may be Sahidic</span>
+      {{- end }}
+    </dd>
+    {{ end }}
+    {{ with .glosses }}
+    <dt>Gloss</dt>
+    <dd>{{ range . }}{{ .text }}{{ end }}</dd>
+    {{ end }}
+  </dl>
+  {{ with .corpus_refs }}
+  <h3>In the corpus</h3>
+  <ul>{{ range . }}<li>{{ .work_title }} — {{ .occurrences }} occurrence(s)</li>{{ end }}</ul>
+  {{ end }}
+</article>

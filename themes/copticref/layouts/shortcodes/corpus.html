@@ -1,0 +1,36 @@
+{{- /*
+  themes/copticref/layouts/shortcodes/corpus.html
+
+  Session 10 D3.
+
+  The reader needs <div>s and a <script>, and hugo.yaml sets
+  markup.goldmark.renderer.unsafe = false — correctly, because raw HTML in
+  content is an injection vector and nothing in this project needs it.
+
+  So the reader lives in a SHORTCODE rather than in the generated markdown. A
+  shortcode's output is injected as trusted template output, not parsed as
+  content, which is exactly the distinction that lets the page have working
+  script while the content pipeline stays closed to raw HTML.
+
+  The generated markdown says only:  a shortcode call for "corpus".
+*/ -}}
+{{- $slug := .Page.Params.work_slug | default .Page.Params.slug }}
+<noscript>
+  <p class="note"><strong>The interlinear reader needs JavaScript.</strong>
+  The parsed text is published as plain compressed JSON at
+  <a href="/data/corpus/{{ $slug }}/text.json.gz"><code>/data/corpus/{{ $slug }}/text.json.gz</code></a>
+  (verses) and
+  <a href="/data/corpus/{{ $slug }}/tokens.json.gz"><code>tokens.json.gz</code></a>
+  (tokens), readable with any JSON tool. Nothing is hidden behind this script —
+  it is a presentation layer over those two files.</p>
+</noscript>
+
+<div id="corpus-head">
+  <p id="corpus-status" class="note">Loading {{ .Page.Title }} …</p>
+</div>
+<div id="corpus-body"></div>
+<div id="corpus-entry"></div>
+
+<!-- ORDER IS LOAD-BEARING: fetch_json.js before corpus.js. Both defer. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/corpus.js" | relURL }}" defer></script>

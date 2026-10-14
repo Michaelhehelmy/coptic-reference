@@ -1,0 +1,48 @@
+# Hugo configuration — Session 8 D6 / C4.
+#
+# Deliberately minimal. No analytics, no plugins, no theme modules, no JS. The
+# reading path stays 100% static (invariant 1) and the only runtime component in
+# the whole project remains the Worker (invariant 2).
+#
+# WHY NO PLUGINS: a plugin is third-party code executing at build time on the
+# machine that produces the site. The Obsidian vault config in this project takes
+# the same position explicitly ("communityPlugins is written as an empty list on
+# purpose so it is visible in the diff that we meant it"), and the same reasoning
+# applies here.
+
+theme: "copticref"          # without this the theme layouts are never loaded
+baseURL: "https://coptic.re/"
+title: "Coptic Reference"
+languageCode: "en-gb"
+defaultContentLanguage: "en"
+
+enableRobotsTXT: true
+enableGitInfo: false
+disableKinds: ["taxonomy", "term"]     # no tag/category machinery yet
+summaryLength: 30
+
+# Emits /sitemap.xml, which the plan requires and which costs nothing here.
+sitemap:
+  changefreq: "weekly"
+  filename: "sitemap.xml"
+  priority: 0.5
+
+params:
+  # v4 §10.2: Bohairic is presented FIRST because it is the language the living
+  # Church uses. That is a PRESENTATION decision, not a claim that the data
+  # supports it equally -- only 2,045 of 11,369 entries carry a Bohairic flag.
+  # The /dialects/ page exists so the difference is visible rather than asserted.
+  defaultDialect: "B"
+  description: "A static Coptic language reference: dictionary, corpus and provenance."
+  # data/dist is NOT read at build time (Session 8 D6: a build over 30 s means
+  # something is reading the dataset, and that must be diagnosed, not tolerated).
+  # The browser fetches index.json.gz and decompresses it.
+  dictIndex: "data/dist/dict/index.json.gz"
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: false        # no raw HTML from content by default
+
+minify:
+  disableXML: true

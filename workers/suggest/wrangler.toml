@@ -1,0 +1,32 @@
+name = "coptic-reference-suggest"
+main = "index.ts"
+compatibility_date = "2026-10-01"
+
+# Anonymous submission bridge for the Coptic Reference.
+#
+# THE ONLY RUNTIME COMPONENT IN THE PROJECT. If you delete this Worker, reading
+# is unaffected; contribution falls back to mailto:. See README.md.
+#
+# No KV, no D1, no R2, no bindings of any kind. Dedup is stateless (GitHub
+# search). Adding a binding here would promote the project to architecture (C),
+# which v5 sec 13.1 explicitly rejects.
+
+workers_dev = true
+
+[vars]
+REPO = "coptic-reference/coptic-reference"   # <- set to owner/repo
+SITE_ORIGIN = "https://coptic.re"
+RATE_LIMIT_PER_HOUR = "5"
+RATE_LIMIT_PER_DAY = "20"
+# TURNSTILE_SECRET intentionally unset. See README: off by default, because
+# captchas cost us exactly the contributors we want.
+
+# GITHUB_TOKEN is a SECRET, not a var. Set it with:
+#   npx wrangler secret put GITHUB_TOKEN
+# It needs issues:write. Never commit it. Never log env.
+
+[observability]
+enabled = true
+
+# Free tier: 100,000 requests/day. Ample for a heritage site. If you ever
+# approach it, the fix is a lower per-IP limit, not a paid plan.

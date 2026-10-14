@@ -1,0 +1,492 @@
+# .github/workflows/ci.yml — the three gates.
+#
+# Every gate here already passes locally and is verified in DECISIONS.md.
+# This file is deliberately configuration, not new logic: if a job fails, the
+# code changed, not the wiring.
+#
+# WHAT IS NOT HERE, AND WHY
+#   * No `wrangler deploy`. The Worker is a contribution path, not the reading
+#     path. A deploy on every push would make a typo in a contribution form a
+#     production incident. See PRE_LAUNCH.md.
+#   * No network fetch of any corpus. `fetch_all.py --check` verifies files that
+#     are ALREADY in the working tree against tools/sources.lock. It does not
+#     download. Pin drift is detected when a maintainer re-fetches deliberately
+#     (see CONTRIBUTING_SOURCES.md), not on every CI run.
+#   * No Hugo build yet. There is no site to build (Session 3+).
+#
+# LICENCE: project code, Apache-2.0.
+
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref. Saves minutes on content PRs and
+# changes nothing about what is verified.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── 1. the alphabet is pinned ───────────────────────────────────────────────
+  collation_guard:
+    name: collation guard (alphabet pin)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recompute collation_hash and compare to the pin
+        run: python3 tools/validate/collation_guard.py
+
+  # ── 2. every input still matches its pin ───────────────────────────────────
+  # HONEST LIMITATION, stated in the step name on purpose: `sources/` is
+  # gitignored, so on a fresh CI checkout there are no downloaded files and
+  # `--check` cannot compare a single byte. This job therefore does two things:
+  #
+  #   a) `--check` audits tools/sources.lock for internal contradictions
+  #      (malformed sha256, missing byte count, a sha256 copy-pasted across two
+  #      sources, records > bytes, a missing licence verdict) and prints exactly
+  #      how many sources were byte-verified — which here is zero, and it says so.
+  #   b) `--self-test` exercises the real fetch-and-compare path over a file://
+  #      URL, proving a correct pin is accepted and a wrong sha or byte count is
+  #      rejected. Without this the job would be decorative.
+  #
+  # Detecting an UPSTREAM CHANGE is not possible here and is not attempted: a
+  # maintainer runs `python3 tools/fetch/fetch_all.py` locally, and a changed pin
+  # arrives as a reviewed PR. See CONTRIBUTING_SOURCES.md.
+  sources_check:
+    name: source pins (lock audit + verifier self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit tools/sources.lock for internal contradictions
+        # Session 6 D0: --check now exits non-zero when a pinned source has no
+        # local copy, which is CORRECT for a maintainer's machine and wrong for
+        # CI, where sources/ is gitignored and no source is present. The flag says
+        # so out loud and the job still asserts the lock file is well-formed.
+        run: python3 tools/fetch/fetch_all.py --check --allow-absent-sources
+      - name: Prove the verifier rejects a wrong sha and a wrong byte count
+        run: python3 tools/fetch/fetch_all.py --self-test
+
+  # ── 3. the contracts ───────────────────────────────────────────────────────
+  tests:
+    name: tests (collation, _TT parser, schemas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --upgrade pip -r tools/requirements.txt
+      - name: Collation, _TT parser, and JSON Schema contracts
+        run: python3 -m pytest tools/tests/ -v
+
+  # ── 4. the licence gates ───────────────────────────────────────────────────
+  # Added in Session 2. These enforce invariant 5 (no NC in data/dist) and
+  # invariant 7 (no artefact without provenance). They run on the WHOLE
+  # data/dist tree, so they must pass before any merge produces output.
+  nc_guard:
+    name: NC guard (fail-closed allowlist)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: No non-allowlisted or NC source inside data/dist
+        run: python3 tools/validate/nc_guard.py
+
+  licence_guard:
+    name: licence guard (every source has a verdict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Every source id resolves to a non-UNKNOWN licence
+        run: python3 tools/validate/licence_guard.py
+
+  # ── 5. the gates must actually be able to fail ──────────────────────────────
+  # A gate nobody has watched reject anything is decoration. This job asserts
+  # the guard logic itself, using synthetic fixtures. If nc_guard.py is ever
+  # weakened to the point of passing NC content, this job goes red even though
+  # job 4 stays green.
+  guards_can_fail:
+    name: guards reject known-bad input
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --upgrade pip -r tools/requirements.txt
+      - name: NC guard and licence guard must FAIL on their negative fixtures
+        run: python3 tools/tests/test_guards.py -v
+
+  # ── 6. the reader vault ────────────────────────────────────────────────────
+  # The vault is a REDISTRIBUTION surface: it is written to public/downloads/,
+  # not data/dist/, so nc_guard.py never sees it. These tests are the only thing
+  # checking it — that NC content cannot reach it, that Coptic stays text
+  # (no images, no SVG), that it stays under 200 files and 25 MiB, and that every
+  # file carries its attributions.
+  vault:
+    name: obsidian vault (limits, licences, text-stays-text)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --upgrade pip -r tools/requirements.txt
+      - name: Vault contracts
+        run: python3 tools/tests/test_obsidian.py -v
+
+  # ── 7. the data pipeline (Session 3) ────────────────────────────────────────
+  # These run against the REAL pinned sources. They are skipped-with-reason, not
+  # failed, when a source has not been fetched, because `sources/` is gitignored
+  # and a fresh CI checkout has none of it. What CI CAN check without the data is
+  # the parser contracts, the merge rules, and the emit ordering — and those are
+  # what the test modules below do.
+  #
+  # Note honestly: these jobs do NOT prove the pipeline works against real data,
+  # because CI does not have the real data. `tools/fetch/fetch_all.py` run by a
+  # maintainer is what does that. The tests here are the part CI is responsible
+  # for.
+  parsers:
+    name: parsers (kaikki, tei, conllu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --upgrade pip -r tools/requirements.txt
+      - name: "Streaming parsers: contracts, drift gate, MWT ranges, no-lemma entries"
+        run: python3 tools/tests/test_kaikki.py tools/tests/test_tei.py tools/tests/test_conllu.py -v
+
+  merge_emit:
+    name: merge + emit (v4 §2.4 precedence, Coptic shard order)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --upgrade pip -r tools/requirements.txt
+      - name: Merge precedence rules and shard emission
+        run: python3 tools/tests/test_merge_emit.py -v
+
+  # ── 8. NC in the RENDERED site (Session 3, correction C3) ───────────────────
+  # nc_guard covers data/dist. This covers public/, which is the half of
+  # invariant 5 that reaches a reader — and it opens archive members, so a zip
+  # whose bytes happen not to contain the string is not mistaken for a clean zip.
+  nc_guard_public:
+    name: NC guard, public/** (invariant 5, second half)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: No NC source id in public/** outside the disclosure pages
+        run: python3 tools/validate/nc_guard_public.py
+
+
+  corpus_tarball:
+    name: corpus tarball (reproducible, fingerprint covers content)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Rebuild twice; the SHA-256 must be identical
+        run: python3 tools/validate/tarball_repro_check.py
+      - name: Unchanged sources must SKIP, and edited text must NOT skip
+        run: python3 tools/validate/tarball_guard_check.py
+
+  corpus_text:
+    name: "corpus has text (S4-C1: empty text shipped undetected)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Every verse has Coptic and English; every token has form/lemma/POS
+        run: python3 tools/validate/corpus_text_guard.py
+
+  corpus_roundtrip:
+    name: dictionary <-> corpus round trip, both directions, off disk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --quiet pytest jsonschema
+      - name: 12 checks incl. verified occurrence counts
+        run: python3 -m pytest tools/tests/test_full_roundtrip.py -v
+
+  dialects:
+    name: "dialects.json agrees with the shards (Q4: [N] shown, not hidden)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recompute and compare
+        run: python3 tools/validate/dialects_check.py   # reads the committed file
+
+  shard_guard:
+    name: "shards are real gzip, and the index cross-checks (G2, S5-B2)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Gzip magic, decompressibility, and index <-> shard agreement
+        run: python3 tools/validate/shard_guard.py
+
+  index_pin_guard:
+    name: "the SHIPPED index carries the collation pin (G3)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: collation_guard covers the code; this covers the artefact
+        run: python3 tools/validate/index_pin_guard.py
+
+  client_lookup:
+    name: "tap a word -> see the entry, under the gzipped layout (D4)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --quiet pytest
+      - name: index -> shard[offset] -> corpus_refs, incl. the 7 Greek-block capitals
+        run: python3 -m pytest tools/tests/test_client_lookup.py -v
+
+  size_budget:
+    name: "offline budget (data/dist < 5 MB, shards < 200 kB)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Enforce the four budgets; --blame so a failure says why
+        run: python3 tools/validate/size_guard.py --blame
+
+  pos_vocabulary:
+    name: "POS is a controlled vocabulary (Session 6 C3)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: python3 -m pip install --quiet jsonschema
+      - name: Every shipped POS is in the controlled set, and an unknown one is refused
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys, pathlib
+          sys.path.insert(0, "tools")
+          import shardio, pos
+          seen = set()
+          for _p, e in shardio.iter_entries(pathlib.Path("data/dist/dict")):
+              seen.update(e.get("pos") or [])
+          assert seen, "no POS values at all"
+          bad = sorted(seen - pos.CONTROLLED)
+          assert not bad, f"POS outside the controlled set: {bad}"
+          print(f"  {len(seen)} distinct POS values, all controlled")
+          for bad_value in ("Nebular-Wortart", "Verb.", ""):
+              try:
+                  pos.normalize(bad_value)
+              except pos.PosVocabularyError:
+                  continue
+              raise SystemExit(f"pos.normalize accepted {bad_value!r}; the vocabulary is not controlled")
+          print("  unmapped values are refused, so the vocabulary cannot widen itself")
+          PY
+
+  single_source_guard:
+    name: "one licence manifest, one spelling (Session 7 C2)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: No banned spelling on disk or in any source file
+        run: python3 tools/validate/single_source_guard.py
+
+  stdlib_name_guard:
+    name: "no project module shadows a stdlib name (Session 7 C3)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Filenames and imports checked against sysconfig's stdlib list
+        run: python3 tools/validate/stdlib_name_guard.py
+
+  hugo_build:
+    name: "hugo --gc --minify (Session 8 D6, must stay under 30 s)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Hugo extended
+        run: |
+          set -euo pipefail
+          curl -sL -o /tmp/hugo.tar.gz \
+            https://github.com/gohugoio/hugo/releases/download/v0.128.0/hugo_extended_0.128.0_linux-amd64.deb
+          sudo dpkg -i /tmp/hugo.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build, timed
+        run: |
+          set -euo pipefail
+          START=$(date +%s)
+          hugo --gc --minify --destination public_hugo
+          node tools/emit/pagefind_index.mjs
+          node tools/emit/sw_gen.mjs
+          echo "$(( $(date +%s) - START ))s for Stage B"
+      - name: Fail if the build reads data/dist (the 30 s rule)
+        # A build that crawls data/dist is the failure mode Session 8 D6 named:
+        # it would be slow now and pathological when the dataset grows. The
+        # budget is a tripwire, not a target.
+        run: |
+          set -euo pipefail
+          START=$(date +%s); hugo --gc --minify --destination public_hugo >/dev/null
+          ELAPSED=$(( $(date +%s) - START ))
+          echo "hugo took ${ELAPSED}s"
+          test "$ELAPSED" -lt 30 || { echo "::error::hugo exceeded 30s — is a layout reading data/dist?"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: public_hugo
+
+  # ── Session 10 ─────────────────────────────────────────────────────────────
+
+  fetch-work-pins:
+    name: per-work source pins (no network)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Verify every work on disk against its pin
+        # fetch_all --check covers the corpora RELEASE tarball. These pins cover
+        # each WORK's extracted bytes, which nothing else compared -- so an edited
+        # or truncated sources/corpus/<slug>/*.tt passed every other guard.
+        run: python3 tools/fetch/fetch_work.py --check
+
+  esm-path-guard:
+    name: no bare import.meta.url
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: lint
+        # `.pathname` on import.meta.url is percent-encoded, so any checkout whose
+        # path contains a space resolves to nothing. Silent everywhere else, which
+        # is why it needs a job of its own rather than a comment.
+        run: python3 tools/validate/esm_path_guard.py
+
+  playwright:
+    name: service worker + corpus reader (chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install hugo
+        run: |
+          set -euo pipefail
+          curl -sSL -o hugo.deb \
+            https://github.com/gohugoio/hugo/releases/download/v0.128.0/hugo_0.128.0_linux-amd64.deb
+          sudo dpkg -i hugo.deb
+      - name: Install playwright + browser
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pytest playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Build public/
+        # The SW tests assert against real built bytes: the precache list, the
+        # gzip files, and the reader markup. Testing a stub proves nothing.
+        run: python3 tools/build.py
+      - name: Service worker + corpus reader
+        run: python3 -m pytest tools/tests/playwright/ -q
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: public/ }
+
+  public-completeness:
+    name: public/ is complete
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install hugo
+        run: |
+          set -euo pipefail
+          curl -sSL -o hugo.deb \
+            https://github.com/gohugoio/hugo/releases/download/v0.128.0/hugo_0.128.0_linux-amd64.deb
+          sudo dpkg -i hugo.deb
+      - name: Build
+        run: python3 tools/build.py
+      - name: Every published artefact is present and non-empty
+        # Catches the failure mode provenance cannot: a file that is accounted for
+        # and therefore passes --strict, but is absent entirely.
+        run: python3 tools/validate/public_completeness_guard.py --strict
+      - name: And every public file is accounted for
+        run: python3 tools/validate/public_provenance_guard.py --strict
+
+  pagefind-pin-guard:
+    name: pagefind pinned exactly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: The pin must be an exact version
+        # Found by this guard on the day it was written: package.json read
+        # "^1.5.2" under a comment claiming "PINNED EXACTLY, no caret". A caret
+        # lets the search index differ between bakes, which breaks the
+        # byte-reproducibility every other pin here exists to guarantee.
+        run: python3 tools/validate/pagefind_pin_guard.py
