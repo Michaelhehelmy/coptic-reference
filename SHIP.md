@@ -9,7 +9,7 @@ The document a new maintainer reads first. Written at the end of Session 15.
 | | |
 |---|---|
 | Preview | `https://session-14.coptic-reference.pages.dev` (Session 14 build) |
-| Production | **not deployed** — see "To promote" below |
+| **Production** | **`https://coptic-reference.pages.dev`** — deployed Session 15, checklist 10/10 |
 | Repository | 11 commits on `master`, clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
 | Tests | 325 passed, 22 skipped, 1 xfailed |
 | Guards | 17, all pass, all run inside `tools/build.py` |
@@ -72,6 +72,29 @@ Production promotion: `PRE_PRODUCTION_CHECKLIST.md`.
 ## Review date
 
 **Pagefind#1370 — 2027-04-01.** Until then the workaround stands.
+
+## Production verification (Session 15)
+
+Against `https://coptic-reference.pages.dev`, in Chromium via Playwright:
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Manifest from the CDN | 143 files |
+| 2 | Routes | 8 checked, all 200 |
+| 3 | Service worker | 1 registration, scope `/` |
+| 4 | Cache | 8 entries = 8 declared |
+| 5 | Coptic search | `ⲧⲉⲛⲟⲩ` → 1 |
+| 5 | English search | `copper` → 19 |
+| 6 | Headers | `service-worker-allowed: /` |
+| 7 | gzip | `application/gzip`, no `Content-Encoding` |
+| 8 | U+FE26 lemma | `ⲃ︦` → 297 |
+| 9 | Corpus | 3,470 spans, `ⲛⲧⲟⲥ`, back to `/corpus/sahidic_ruth/` |
+| 10 | CSP violations | none |
+
+Lighthouse on production: `/dict/` **85/100/100/100**, `/corpus/sahidic_ruth/`
+**97/100/100/100** (perf/a11y/best-practices/SEO). Both accessibility scores are
+100. Best-practices is 100 on both (was 96 locally — the CDN serves the headers
+the local server never did, which is Rule 9 in one number).
 
 ## Who to contact
 

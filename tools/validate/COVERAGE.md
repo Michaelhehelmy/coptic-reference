@@ -364,3 +364,37 @@ the difference because every test server so far has served `.gz` undecoded.
   lands. Nothing in this repository can fix it.
 - **`sources/**/*.tt`** is fetched, not vendored, so a clean clone needs
   `fetch_work.py` before `tools/build.py` will produce a corpus.
+
+
+---
+
+## Session 15 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | CONTRIBUTING missing-input rule | **DONE** | verbatim |
+| D0 | HANDOFF fetch-first step | **DONE** | §5 step 1 |
+| D0 | Size budgets enforced | **DONE** | 300 KB / 500 KB, fail-closed |
+| D0 | Budget negative | **DONE** | 358 KB index → guard FAIL; restored PASS |
+| D0 | #1370 review date | **DONE** | 2027-04-01 in DECISIONS.md |
+| D1 | 11 (+1) commits | **DONE** | 12 hashes, clean tree |
+| D1 | `.gitignore` scope | **DONE** | `data/`, `database.db*`, scratch added |
+| D2 | Push | **BLOCKED** | no remote; commands prepared |
+| D3 | Production deploy | **DONE** | `coptic-reference.pages.dev` |
+| D3 | Production checklist | **10/10 PASS** | on the production origin |
+| D4 | curl production | **DONE** | 4 routes, 200s |
+| D4 | Lighthouse production | **DONE** | 85/100/100/100 and 97/100/100/100 |
+| D4 | Manual browser walkthrough | **DONE** | scripted Chromium (see note) |
+| D5 | SHIP.md | **DONE** | production URL, state, contacts |
+| D6 | Final docs | **DONE** | this file, DECISIONS, README, HANDOFF |
+
+### Not covered
+
+- **A git remote and a production build from git.** There is no remote, so
+  Cloudflare cannot pull and build. Production is a direct upload.
+- **A human-driven GUI walkthrough.** The "manual" test was Chromium driven by
+  Playwright, not a hand on a mouse. It loads the real site, searches real
+  words and clicks real links, but it is scripted — reported as such rather
+  than claimed otherwise.
+- **The four VERIFY markers.** Unresolved, as instructed since Session 10.
+- **Pagefind#1370.** Open; review 2027-04-01.

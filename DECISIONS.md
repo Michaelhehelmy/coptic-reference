@@ -2468,3 +2468,50 @@ it is a failure.
 `sources/**/*.tt` — the corpus is fetched, not vendored — and `tools/build.py`
 **succeeds without it**, producing a site with no corpus at all. That is the same
 family as the warning above: a build that completes and ships something broken.
+
+
+---
+
+## Session 15 — production
+
+### It is live
+
+`https://coptic-reference.pages.dev` — deployed by direct upload to the
+production branch (`master`), because there is no git remote for Cloudflare to
+build from. Checklist 10/10 on the production origin, Lighthouse 85/100/100/100
+and 97/100/100/100, zero CSP violations.
+
+### The tree is committed
+
+12 commits on `master`, clean tree. The plan called for 11; the adjustments:
+
+- **Commit 9 (inert-defect fixes) was merged into commit 8.** With everything
+  untracked there was no "before" state to separate from, so a standalone fixes
+  commit would have contained nothing. The site commit includes the fixed readers.
+- **`tools/README.md`, `tools/__init__.py`, `tools/requirements.txt`,
+  `tools/schemas/` went into commit 10** with the docs rather than getting their
+  own commits. Noted here so the mapping is explicit.
+- **`docs/README.md` needed a 12th commit.** It is a one-line index that was
+  overlooked; amending was wrong because the docs commit was already a coherent
+  unit.
+
+Identity: `GIT_AUTHOR_*`/`GIT_COMMITTER_*` env vars, Michael Helmy /
+michael.he.helmy@gmail.com — the name from AUTHORS.md and the email from the
+authenticated GitHub identity. `git config` was not touched.
+
+### Push and promotion honest accounting
+
+- **Push: impossible.** There is no remote (`git remote -v` is empty,
+  `git ls-remote origin` fails). The exact commands are in
+  PRE_PRODUCTION_CHECKLIST.md for when a remote exists.
+- **Promotion: done by direct deploy**, because the Pages project cannot build
+  from git without a remote to pull from. `wrangler pages deploy public
+  --branch master` with the project's production branch set to `master` puts the
+  upload on the production domain.
+
+### `test_truncated_inside_norm_raises` was missing its skip marker
+
+The only test in `test_tt_parser.py` that touched the `/tmp` corpus without
+`@needs_corpus`. A cleaned-up fixture turned into a failure instead of a skip.
+One-line fix, and a reminder that a test depending on an external fixture without
+a guard is a test waiting to lie.
