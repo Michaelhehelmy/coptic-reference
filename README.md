@@ -479,6 +479,23 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 20 status
+
+**All fifteen lessons teach, and drills ask about the annotation too.**
+
+- Lessons 6–15 are written with the same rigor as 1–5: 200+ words each,
+  every taught gloss checked against the dictionary by
+  `lesson_vocab_guard.py` (which caught two of its own normalization bugs
+  on first contact with real prose). Unlisted-but-real forms (ⲧⲉϥ, ⲡⲉϫⲉ,
+  ⲁⲛ, ⲉⲧⲉ) are declared in front matter with reasons, never silently
+  unresolvable.
+- Parse drills: name a marked word's part of speech or its headword —
+  2,599 of each across the six works, answers re-read from the tarball by
+  `parsedrill_guard.py`, rendered on `/drill/` beside cloze.
+- `public_size_guard.py` budgets the published tree (20 MB total; corpus 15,
+  quiz/drill 5 each, course 500 KB) after `size_guard` caught 1.7 MB of
+  stale plain CSVs (E33: gzipped per design, budget untouched).
+
 ## Session 19 status
 
 **The course chains the banks, and every guard ships with its reproducing test.**

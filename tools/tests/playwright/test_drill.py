@@ -68,3 +68,35 @@ def test_drill_no_js_fallback_lists_works(browser, server):
     assert "Sahidic Ruth" in body
     assert "Bohairic Mark" in body
     ctx.close()
+
+
+def _start_typed(p, server, drill_type):
+    p.goto(server + "/drill/")
+    p.wait_for_selector("#drill-start", timeout=25000)
+    p.select_option("#drill-work", "sahidic_ruth")
+    p.select_option("#drill-type", drill_type)
+    p.click("#drill-start")
+    p.wait_for_function(
+        "() => document.querySelectorAll('#drill-choices button.hit').length > 0",
+        timeout=25000)
+
+
+def test_pos_drill_item_completes(page):
+    p, ctx, server = page
+    _start_typed(p, server, "pos")
+    assert "part of speech" in (p.text_content("#drill-progress") or "")
+    p.locator("#drill-choices button.hit:not([disabled])").first.click()
+    p.wait_for_selector("#drill-feedback .drill-next", timeout=25000)
+    p.locator("#drill-feedback .drill-next").click()
+    progress = p.evaluate("JSON.parse(localStorage.getItem('coptic-drill-progress-v1'))")
+    assert progress["answered"] == 1, progress
+    assert "[object Object]" not in p.content()
+
+
+def test_lemma_drill_item_completes_and_links_entry(page):
+    p, ctx, server = page
+    _start_typed(p, server, "lemma")
+    assert "headword" in (p.text_content("#drill-progress") or "")
+    p.locator("#drill-choices button.hit:not([disabled])").first.click()
+    p.wait_for_selector("#drill-feedback .drill-next", timeout=25000)
+    assert "/dict/?q=" in p.content(), "lemma answer is not linked to its entry"

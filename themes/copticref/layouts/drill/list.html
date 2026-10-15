@@ -17,7 +17,9 @@
   </ul>
   <p class="note">Every blank covers a content word; articles, prepositions,
   and bound forms stay visible. Distractors share the part of speech and the
-  frequency band of the missing word.</p>
+  frequency band of the missing word. A second drill type asks about the
+  annotation itself: name a marked word's part of speech, or its dictionary
+  headword.</p>
 </noscript>
 
 <form id="drill-controls" aria-label="Drill options">
@@ -30,6 +32,14 @@
       <option value="life_of_isaac">Life of Isaac</option>
       <option value="martyrdom_of_victor">Martyrdom of Victor</option>
       <option value="sahidic_ruth">Sahidic Ruth</option>
+    </select>
+  </p>
+  <p>
+    <label for="drill-type">Drill type</label>
+    <select id="drill-type" autocomplete="off">
+      <option value="cloze">Fill the gap</option>
+      <option value="pos">Name the part of speech</option>
+      <option value="lemma">Name the headword</option>
     </select>
   </p>
   <p><button id="drill-start" type="button">Start ten drills</button></p>

@@ -90,8 +90,17 @@
     }
   }
 
-  function bankURL(work) {
-    return BANK_ROOT + "cloze-" + work + ".json.gz";
+  var DRILL_TYPES = ["cloze", "pos", "lemma"];
+
+  function bankURL(type, work) {
+    if (type === "cloze") return BANK_ROOT + "cloze-" + work + ".json.gz";
+    return BANK_ROOT + "parse-" + work + ".json.gz";
+  }
+
+  function drillType(item) {
+    // Cloze banks shipped without the field before Session 20 D4; a missing
+    // field has always meant cloze, so old banks keep working.
+    return item.drill_type || "cloze";
   }
 
   function validateBank(bank, work) {
@@ -112,9 +121,23 @@
           throw new Error("item " + index + " has no " + field);
         }
       });
-      if (!Array.isArray(item.tokens) || typeof item.blank !== "number" ||
-          item.blank < 0 || item.blank >= item.tokens.length) {
-        throw new Error("item " + index + " has a blank outside its verse");
+      var kind = drillType(item);
+      if (kind !== "cloze" && kind !== "pos" && kind !== "lemma") {
+        throw new Error("item " + index + " has an unknown drill type");
+      }
+      if (!Array.isArray(item.tokens) || item.tokens.length === 0) {
+        throw new Error("item " + index + " has no verse");
+      }
+      if (kind === "cloze") {
+        if (typeof item.blank !== "number" ||
+            item.blank < 0 || item.blank >= item.tokens.length) {
+          throw new Error("item " + index + " has a blank outside its verse");
+        }
+      } else {
+        if (typeof item.token_index !== "number" ||
+            item.token_index < 0 || item.token_index >= item.tokens.length) {
+          throw new Error("item " + index + " has a token outside its verse");
+        }
       }
       if (!Array.isArray(item.choices) || item.choices.length !== 4 ||
           typeof item.correct !== "number" ||
@@ -136,12 +159,35 @@
   }
 
   function verseHTML(item) {
+    var kind = drillType(item);
     return item.tokens.map(function (token, index) {
-      if (index === item.blank) {
+      if (kind === "cloze" && index === item.blank) {
         return '<span class="drill-blank" aria-label="missing word">____</span>';
+      }
+      if (kind !== "cloze" && index === item.token_index) {
+        return '<span class="drill-target" aria-label="questioned token"><strong>' +
+          esc(token) + "</strong></span>";
       }
       return "<span>" + esc(token) + "</span>";
     }).join(" ");
+  }
+
+  function questionText(item) {
+    var kind = drillType(item);
+    if (kind === "pos") return "What part of speech is the marked word?";
+    if (kind === "lemma") return "Which dictionary headword is the marked word?";
+    return "Fill the gap";
+  }
+
+  function answerLink(item) {
+    var source = item.source || {};
+    var kind = drillType(item);
+    if (kind === "lemma") {
+      var lemma = item.choices[item.correct];
+      return lemmaLink(plainText(lemma));
+    }
+    if (kind === "cloze") return lemmaLink(plainText(source.lemma));
+    return "";
   }
 
   function lemmaLink(lemma) {
@@ -151,6 +197,7 @@
 
   async function startSession() {
     var workEl = $("drill-work");
+    var typeEl = $("drill-type");
     var status = $("drill-status");
     var promptEl = $("drill-prompt");
     var choicesEl = $("drill-choices");
@@ -160,8 +207,10 @@
     if (!workEl || !promptEl || !choicesEl || !feedbackEl || !scoreEl) return;
 
     var work = workEl.value;
+    var type = typeEl ? typeEl.value : "cloze";
+    if (DRILL_TYPES.indexOf(type) === -1) type = "cloze";
     var progress = loadProgress();
-    status.textContent = "Loading drills for " + work.replace(/_/g, " ") + " …";
+    status.textContent = "Loading " + type + " drills for " + work.replace(/_/g, " ") + " …";
     feedbackEl.textContent = "";
     promptEl.textContent = "";
     choicesEl.innerHTML = "";
@@ -172,18 +221,21 @@
       if (typeof FetchJson === "undefined") {
         throw new Error("fetch_json.js did not load before drill.js");
       }
-      bank = validateBank(await FetchJson.json(bankURL(work)), work);
+      bank = validateBank(await FetchJson.json(bankURL(type, work)), work);
     } catch (e) {
       status.textContent = "Could not load these drills: " + (e && e.message ? e.message : e);
       return;
     }
 
-    var offset = bank.items.length
-      ? (progress.sessionsCompleted * SESSION_SIZE) % bank.items.length
+    var pool = bank.items.filter(function (item) {
+      return drillType(item) === type;
+    });
+    var offset = pool.length
+      ? (progress.sessionsCompleted * SESSION_SIZE) % pool.length
       : 0;
     var session = [];
-    for (var k = 0; k < SESSION_SIZE && k < bank.items.length; k += 1) {
-      session.push(bank.items[(offset + k) % bank.items.length]);
+    for (var k = 0; k < SESSION_SIZE && k < pool.length; k += 1) {
+      session.push(pool[(offset + k) % pool.length]);
     }
     var answered = 0;
     var right = 0;
@@ -194,9 +246,9 @@
       promptEl.innerHTML = verseHTML(item);
       var context = item.context || {};
       var bits = [];
-      if (context.prev != null) bits.push("before the gap: “" + context.prev + "”");
-      if (context.next != null) bits.push("after the gap: “" + context.next + "”");
-      progressEl.innerHTML = "<strong>Fill the gap</strong> · question " +
+      if (context.prev != null) bits.push("before: “" + context.prev + "”");
+      if (context.next != null) bits.push("after: “" + context.next + "”");
+      progressEl.innerHTML = "<strong>" + esc(questionText(item)) + "</strong> · question " +
         (position + 1) + " of " + session.length +
         (bits.length ? " · " + esc(bits.join("; ")) : "") +
         (item.ref ? " · verse " + esc(item.ref) : "");
@@ -232,8 +284,7 @@
               item.choices[item.correct] + "”. ";
           }
           saveProgress(progress);
-          feedbackEl.innerHTML = esc(feedbackEl.textContent) +
-            lemmaLink(plainText((item.source || {}).lemma || item.choices[item.correct]));
+          feedbackEl.innerHTML = esc(feedbackEl.textContent) + answerLink(item);
           scoreEl.textContent = renderScore(progress, answered, session.length);
           var next = document.createElement("button");
           next.type = "button";

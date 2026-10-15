@@ -13,8 +13,8 @@ The document a new maintainer reads first. Written at the end of Session 15.
 | Repository | 11 commits on `master`, clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
 | Tests | 330 passed, 22 skipped, 1 xfailed |
 | Guards | 17, all pass, all run inside `tools/build.py` |
-| Learning layer | Session 16: `/quiz/`, 959 items · Session 18: `/drill/`, 2,589 cloze items · Session 19: `/course/`, 15 lessons with checkpoints, browser-local progress |
-| Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. |
+| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–19: `/drill/`, 2,589 cloze items · Session 19: `/course/`, 15 lessons with checkpoints · Session 20: all lessons teach, 2,599 × 2 parse drills, browser-local progress |
+| Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. Rationale and contributor setup: HANDOFF.md §8a. |
 | Lighthouse | `/dict/` 90/93→**100**/96/100, `/corpus/sahidic_ruth/` 78/**92→100**/96/100 |
 
 ## What is live (on the preview)

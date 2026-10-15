@@ -530,3 +530,25 @@ def test_reader_usage_guard_catches_a_split_line_open(tmp_path):
     hits = rug.check_python_file(planted)
     assert len(hits) == 1, f"expected exactly one hit, got {hits}"
     assert "splitter.py:4" in hits[0], hits[0]  # the read_text call site
+
+
+def test_public_size_guard_fails_on_an_inflated_directory(tmp_path):
+    """Negative control: a directory over budget must fail naming it."""
+    sys.path.insert(0, str(ROOT / "tools" / "validate"))
+    import public_size_guard as psg
+    public = tmp_path / "public"
+    bank_dir = public / "data" / "course"
+    bank_dir.mkdir(parents=True)
+    (bank_dir / "course.json.gz").write_bytes(b"x" * (500 * 1024 + 1))
+    over = psg.check(public)
+    assert len(over) == 1 and "data/course" in over[0], over
+
+
+def test_public_size_guard_passes_a_small_tree(tmp_path):
+    """Positive control: small trees pass."""
+    sys.path.insert(0, str(ROOT / "tools" / "validate"))
+    import public_size_guard as psg
+    public = tmp_path / "public"
+    (public / "data" / "course").mkdir(parents=True)
+    (public / "data" / "course" / "course.json.gz").write_bytes(b"x" * 100)
+    assert psg.check(public) == []

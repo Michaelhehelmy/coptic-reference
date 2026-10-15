@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "tools" / "validate"))
 
 import drillgen  # noqa: E402
 import drill_guard  # noqa: E402
+import parsedrill_guard  # noqa: E402
 
 
 def _tok(verse, i, form, lemma, pos):
@@ -143,3 +144,59 @@ def test_drillgen_skips_ambiguous_slots(tmp_path):
     pos_of = dict.fromkeys(totals, "N")
     items, skipped = drillgen.build_items("w", verse, totals, ranks, rep, pos_of)
     assert items == [] and skipped["ambiguous"] == 2
+
+
+def _parse_bank(path: pathlib.Path, items: list[dict]) -> pathlib.Path:
+    bank = path / "parse-w.json.gz"
+    bank.write_bytes(gzip.compress(
+        json.dumps({"work_slug": "w", "items": items}).encode("utf-8"),
+        compresslevel=9, mtime=0))
+    return path
+
+
+def _parse_item(**over):
+    item = {
+        "id": "p-w-00000", "drill_type": "pos", "type": "parse",
+        "work_slug": "w", "verse_index": 0, "ref": "1",
+        "tokens": ["ⲁ", "ⲥ", "ϣⲱⲡⲉ"], "token_index": 1,
+        "choices": ["PPERS", "ART", "N", "V"], "correct": 0,
+        "source": {"form": "ⲥ", "lemma": "ⲛⲧⲟⲥ", "pos": "PPERS",
+                   "func": "dep", "freq_band": "beginner",
+                   "distractor_tags": ["ART", "N", "V"]},
+        "context": {"prev": "ⲁ", "next": "ϣⲱⲡⲉ"},
+    }
+    item.update(over)
+    return item
+
+
+def _parse_verse():
+    return [_tok(0, 0, "ⲁ", "ⲁ", "ART"),
+            _tok(0, 1, "ⲥ", "ⲛⲧⲟⲥ", "PPERS"),
+            _tok(0, 2, "ϣⲱⲡⲉ", "ϣⲱⲡⲓ", "VSTAT")]
+
+
+def test_parsedrill_guard_accepts_a_fair_item(tmp_path):
+    tarball = _tarball(tmp_path, [_parse_verse()])
+    bankdir = tmp_path / "drill"
+    bankdir.mkdir()
+    _parse_bank(bankdir, [_parse_item()])
+    count, errors = parsedrill_guard.check(bankdir, tarball)
+    assert (count, errors) == (1, [])
+
+
+def test_parsedrill_guard_rejects_a_wrong_correct_answer(tmp_path):
+    tarball = _tarball(tmp_path, [_parse_verse()])
+    bankdir = tmp_path / "drill"
+    bankdir.mkdir()
+    _parse_bank(bankdir, [_parse_item(correct=2)])
+    _, errors = parsedrill_guard.check(bankdir, tarball)
+    assert any("not the annotated" in e for e in errors)
+
+
+def test_parsedrill_guard_rejects_a_normalized_equal_distractor(tmp_path):
+    tarball = _tarball(tmp_path, [_parse_verse()])
+    bankdir = tmp_path / "drill"
+    bankdir.mkdir()
+    _parse_bank(bankdir, [_parse_item(choices=["PPERS", "ppers", "N", "V"])])
+    _, errors = parsedrill_guard.check(bankdir, tarball)
+    assert any("after normalization" in e for e in errors)

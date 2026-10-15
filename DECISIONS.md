@@ -2781,3 +2781,51 @@ if client and test drift, the test answers wrong and fails, which is the
 point. Lighthouse on /course/: 100 a11y, 100 SEO, 96 best-practices (the
 missing favicon, site-wide and pre-existing), 86 performance
 (render-blocking CSS/JS shared with the quiz page).
+
+---
+
+## Session 20 — lessons 6–15, vocab guard, parse drill
+
+### D0: lesson_vocab_guard and the D1 statement in plain language
+
+`lesson_vocab_guard.py` (C1): every Coptic token a lesson teaches —
+`TOKEN (gloss)` pairs — must resolve to a dictionary entry whose glosses
+contain the taught gloss; bare multi-character tokens must resolve or be
+declared in front-matter `unlisted_forms` with a reason (real headword gaps:
+ⲧⲉϥ, ⲡⲉϫⲉ, ⲁⲛ); single letters are letter mentions, exempt. Three negatives
+(invented lemma, wrong gloss, taught pair without entry) plus positive,
+exemption, and real-tree tests. First contact with real prose caught two
+genuine mismatches (ϭⲟⲓⲗⲉ "to dwell" vs entry "dwell"; ⲙⲟⲟϣⲉ "go" vs
+"go (on land or water)"), fixed by stripping qualifiers and the infinitive
+marker identically on both sides — and forced four discursive gloss parens
+in lessons 02/04/05 into the machine convention (gloss in parens, discussion
+outside). Plain-language D1 restatement, as required: drills blank only
+everyday content words because guessing a missing noun from one verse is
+fair and guessing a missing pronoun is often a coin flip; the one-line
+change, if a linguist disagrees, is the LEXICAL_POS set in drillgen.py.
+
+### D4/D5: parse drills, and the guard bugs real prose caught
+
+`parsedrillgen.py` emits POS + lemma items (2,599 each) with per-verse
+rotation (first viable token asked about ⲁ everywhere — rotation spreads
+slots deterministically). `parsedrill_guard.py` re-reads answers from the
+tarball. drill.js renders all three types behind a type select (default
+cloze, so old sessions keep working); missing `drill_type` still means
+cloze. `/drill/` lists both types with a no-JS note.
+
+`lesson_vocab_guard.py` caught two of its own bugs on first contact with
+real prose: `segments()` split raw glosses before stripping qualifiers
+("envoy (general" / "or specific..."), and split pieces kept leading spaces
+(" do" ≠ "do"). Both fixed by normalize-first, strip-per-piece. Same run
+also forced four discursive gloss parens in lessons 02/04/05 into the
+machine convention. The guard is better for having met the lessons.
+
+### D6: size_guard was red from stale plain CSVs
+
+`size_guard` failed at 122% (6.15 vs 5.00 MiB): `emit` writes plain
+records.csv/LICENSES.csv and nothing in the automated flow gzips them
+(`gzip_csvs.py` exists but no step calls it) — stale since the Session 17
+re-emit. Fixed by running `gzip_csvs` per its C4 design (plains removed,
+−1.49 MB), not by touching the budget. Recorded as E33: a budget CI runs
+must be green at session end, and "emit then gzip" needs a documented
+owner.

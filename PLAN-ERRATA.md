@@ -471,3 +471,15 @@ flagged three innocent vault writes, harvesting content arguments flagged
 vault prose mentioning `data/dist` — and both were fixed by narrowing
 (path-position args only, per-function scopes) rather than by exemption.
 The E31 shape has a reproducing test the old regex provably misses.
+
+### E33 — size_guard red from stale plain CSVs nobody gzips
+
+`size_guard` failed at 122% of the 5 MiB data/dist budget. The overage was
+1.72 MB of plain `records.csv` + `LICENSES.csv` sitting next to their `.gz`
+twins since the Session 17 re-emit: `emit/cli.py` always writes plain, and
+no automated step runs `gzip_csvs.py` (its docstring says the plains are
+removed, but nothing invokes it). Fixed by running `gzip_csvs` (−1.49 MB),
+not by raising the budget — a budget breached by doing the planned thing
+still gets fixed by doing the planned thing, and "tune the budget" stays
+off the table. Open item: the emit→gzip step has no owner in build.py or
+any Makefile (there is no Makefile); the next emit will re-break this.

@@ -495,3 +495,20 @@ the difference because every test server so far has served `.gz` undecoded.
 | D5 | lessons 01–05 + 10 placeholders | **DONE** | prose glosses checked vs dictionary; placeholders carry full filters + TODO |
 | D5 | `size_guard` back under budget | **DONE** | was 122% (stale plain CSVs); gzip_csvs per C4 design, now green |
 | D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md (E32), README.md, HANDOFF.md, SHIP.md |
+
+---
+
+## Session 20 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | `lesson_vocab_guard.py` | **DONE** | clean on 15 lessons; 3 negatives + positive + exemption + real-tree tests |
+| D0 | D1 plain-language statement | **DONE** | drillgen.py header + DECISIONS.md paragraph |
+| D1 | lessons 06–15 | **DONE** | 200–251 words each; guard run after every lesson; glosses checked vs entries |
+| D2 | `public_size_guard.py` | **DONE** | clean (6.7/20 MB); inflate-a-dir negative fails naming it |
+| D3 | signing paragraph + pointer | **DONE** | HANDOFF.md §8a paragraph, SHIP.md pointer (Option B) |
+| D4 | `parsedrillgen.py` | **DONE** | 2,599 pos + 2,599 lemma, skips counted, rotation over first-token bias |
+| D4 | `parsedrill_guard.py` | **DONE** | clean; 2 negatives (wrong answer, normalized-equal distractor) |
+| D4 | drill.js three types + /drill/ | **DONE** | Playwright: POS + lemma complete; default cloze unchanged |
+| D5 | all guards + pytest + Playwright | **DONE** | every guard OK; 353 + 54 passed |
+| D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md (E33), README.md, SHIP.md |

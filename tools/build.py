@@ -242,6 +242,18 @@ def main(argv: list[str] | None = None) -> int:
     if rc != 0:
         print("[build] drill guard failed — refusing to publish", file=sys.stderr)
         return rc
+    # Session 20 D4: Layer 2's second drill type, same order (emit, guard).
+    # The publish loop below copies the whole drill dir, parse banks included.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "parsedrillgen.py")],
+                what="parsedrillgen")
+    if rc != 0:
+        return rc
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "parsedrill_guard.py")],
+                what="parsedrill_guard")
+    if rc != 0:
+        print("[build] parse drill guard failed — refusing to publish",
+              file=sys.stderr)
+        return rc
     drill_src = ROOT / "data" / "dist" / "drill"
     drill_dest = PUBLIC / "data" / "drill"
     if not drill_src.is_dir():

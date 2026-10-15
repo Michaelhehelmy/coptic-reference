@@ -61,11 +61,8 @@ def test_lesson_pages_carry_real_prose_or_an_honest_todo():
         path = ROOT / "content" / "lessons" / f"{number:02d}.md"
         body = path.read_text(encoding="utf-8").split("---", 2)[2]
         words = len(body.split())
-        if number <= 5:
-            assert words >= 150, f"{path.name}: {words} words is not a lesson"
-            assert "TODO" not in body, f"{path.name} teaches but claims TODO"
-        else:
-            assert "TODO (Session 20)" in body, f"{path.name} hides its stub"
+        assert words >= 150, f"{path.name}: {words} words is not a lesson"
+        assert "TODO" not in body, f"{path.name} teaches but claims TODO"
 
 
 def test_no_js_lesson_list_matches_the_course():
