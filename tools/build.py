@@ -254,6 +254,12 @@ def main(argv: list[str] | None = None) -> int:
         print("[build] parse drill guard failed — refusing to publish",
               file=sys.stderr)
         return rc
+    # Session 21 D2: the POS label file ships with the banks it serves.
+    # The emitter fails closed on any unlabeled tag in the tarball.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "pos_labels.py")],
+                what="pos_labels")
+    if rc != 0:
+        return rc
     drill_src = ROOT / "data" / "dist" / "drill"
     drill_dest = PUBLIC / "data" / "drill"
     if not drill_src.is_dir():

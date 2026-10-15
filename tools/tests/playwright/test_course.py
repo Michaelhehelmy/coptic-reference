@@ -119,3 +119,13 @@ def test_lessons_1_to_5_render_prose_not_todo(browser, server):
         assert "TODO (Session 20)" not in body, number
         assert len(body) > 2000, number
     ctx.close()
+
+
+def test_lesson_pages_carry_the_unverified_banner(browser, server):
+    ctx = browser.new_context()
+    p = ctx.new_page()
+    p.goto(server + "/lessons/01/")
+    p.wait_for_selector("#grammar-claims-banner", timeout=25000)
+    assert "not been independently verified" in p.content()
+    assert "/grammar-claims/" in p.content()
+    ctx.close()

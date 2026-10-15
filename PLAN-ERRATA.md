@@ -483,3 +483,12 @@ not by raising the budget — a budget breached by doing the planned thing
 still gets fixed by doing the planned thing, and "tune the budget" stays
 off the table. Open item: the emit→gzip step has no owner in build.py or
 any Makefile (there is no Makefile); the next emit will re-break this.
+
+### E34 — a comment tripped the content guard
+
+`no_object_object_guard` scans file contents, comments included. The new
+`pos_labels.js` header mentioned the raw-object marker by name to explain
+what it prevents — and failed the guard for containing the string. Fixed by
+describing the bug class without the literal, with a comment in the file
+saying why the literal must never appear. Guards that scan text cannot tell
+mention from use; the file now says so on its own behalf.

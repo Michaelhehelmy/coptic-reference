@@ -2829,3 +2829,50 @@ re-emit. Fixed by running `gzip_csvs` per its C4 design (plains removed,
 −1.49 MB), not by touching the budget. Recorded as E33: a budget CI runs
 must be green at session end, and "emit then gzip" needs a documented
 owner.
+
+---
+
+## Session 21 — content audit, POS labels, writing practice
+
+### D0: content audit — the memory problem was confined to lessons
+
+Rule 14 ("a claim in content is verified the same way a claim in code is")
+is verbatim in HANDOFF.md §8a and CONTRIBUTING.md. The exhaustive walk of
+content/ found: 15 lesson files, 156 taught `TOKEN (gloss)` pairs, every one
+resolving with a matching gloss segment; 4 distinct entry-less tokens
+(ⲧⲉϥ, ⲡⲉϫⲉ, ⲁⲛ, ⲉⲧⲉ), all already declared in `unlisted_forms` with
+reasons; every other content page (about, corpus, dialects, dict, drill,
+licences, nc, quiz, course) carries zero Coptic tokens; the plan README
+carries only metalinguistic mentions (letter inventory, negation markers,
+converter name) plus one true divergence — it still listed ⲫⲏ where lesson
+06 ships ⲛⲁⲓ — fixed to match the verified file. Fixed-vs-declared: one
+plan line fixed, four tokens declared, zero memory glosses remaining. The
+memory-word problem was confined to lessons, and lessons are now guarded.
+
+### D2: POS labels, with seven flagged for review
+
+`pos_labels.py` maps all 57 corpus tags; `pos_labels.js` renders them, and
+drill.js shows labels, never raw tags (a behavior test asserts it on a live
+POS session). Seven labels rest on corpus examples rather than
+documentation (VBD/IMOD/FM/PPERI/APREC/AFUTCONJ/AOPT) and say REVIEW in the
+source; the emitter fails closed on any unlabeled tag — which is how AAOR
+(140 tokens, habitual ϣⲁⲣⲉ-) got labeled instead of shipped raw. The labels
+file nests the map under a `labels` key; drill.js unwraps it once, and the
+first version did not, failing loudly on "no label for POS tag ⲁ".
+
+### D3: trivial-identity items removed from parse drills
+
+Tokens identical to their lemmas after normalization (ⲁ→ⲁ) are answerable
+by shape matching: 24 items removed (5,198 → 5,174), rule in both the
+emitter and the guard with a negative control.
+
+### D4: writing practice without invented stroke order
+
+The 32 is 25 Greek-derived (ⲉ and ⲋ are different letters) plus 7 Demotic;
+ⳉ is dictionary-attested but in no counted alphabet, so it is documented,
+not taught. Reference SVGs carry the glyph as font text only — no stroke
+paths exist because no verified stroke-order source exists; order is not
+assessed, shape coverage is (measured overlap bands + gesture-vs-region
+count, never numeric). write.js consumed its own ink map during flood fill
+on first review (every overlap zero, always "Try again"); separate visited
+state fixed it. Lighthouse /write/: 99/100/96/100.

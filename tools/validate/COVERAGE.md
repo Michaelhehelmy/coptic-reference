@@ -512,3 +512,18 @@ the difference because every test server so far has served `.gz` undecoded.
 | D4 | drill.js three types + /drill/ | **DONE** | Playwright: POS + lemma complete; default cloze unchanged |
 | D5 | all guards + pytest + Playwright | **DONE** | every guard OK; 353 + 54 passed |
 | D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md (E33), README.md, SHIP.md |
+
+---
+
+## Session 21 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | Rule 14 in HANDOFF §8a + CONTRIBUTING | **DONE** | verbatim from C1; evidence ⲭⲱ/ϭⲟⲓⲗⲉ |
+| D0 | content audit | **DONE** | 156 pairs verified, 4 declared, 1 plan line fixed, rest zero-Coptic |
+| D1 | GRAMMAR_CLAIMS.md + markers + banner | **DONE** | 21 claims + 2 method notes; banner renders (Playwright asserts) |
+| D2 | pos_labels data + renderer + guard | **DONE** | 57/57 tags; behavior test renders labels; AAOR fail-closed catch |
+| D3 | trivial-identity skip + guard rule | **DONE** | 5,198 → 5,174; negative control fails naming it |
+| D4 | writing practice | **DONE** | 35 SVGs + index; canvas verdicts; Playwright draws; LH 99/100/96/100 |
+| D5 | all guards + pytest + Playwright | **DONE** | every guard OK; 360 + 57 passed |
+| D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md (E34), README.md, SHIP.md |

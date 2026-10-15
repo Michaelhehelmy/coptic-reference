@@ -479,6 +479,20 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 21 status
+
+**Content claims are verified like code claims, and learners can write.**
+
+- Rule 14 with the content audit: 156 taught pairs verified, 4 headword
+  gaps declared, 1 plan divergence fixed; `GRAMMAR_CLAIMS.md` holds 21
+  grammar assertions with blank verdicts, and every lesson page carries the
+  unverified banner until a reviewer fills them.
+- POS drills render labels, never raw tags (`pos_labels.js`, 57 tags, 7
+  flagged for review); trivial form==lemma items removed (5,198 → 5,174).
+- `/write/`: trace 32 letters + 3 words on canvas with lenient Good/Close/
+  Try-again feedback measured from the font at runtime — no invented stroke
+  order, no numeric scores. Lighthouse 99/100/96/100.
+
 ## Session 20 status
 
 **All fifteen lessons teach, and drills ask about the annotation too.**

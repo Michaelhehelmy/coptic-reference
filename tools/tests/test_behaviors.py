@@ -557,3 +557,50 @@ def test_translit_renders_string(origin):
                 context.close()
             if browser is not None:
                 browser.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. A POS tag renders as a label, never raw.
+#
+# Bug shape: drill.js printed annotation tags (APST, CREL, PPERS) straight
+# into choice buttons — the learner did not study the tagset. Session 21 D2
+# routes every tag through posDisplay() against the shipped labels file.
+# This test starts a real POS session and asserts every rendered choice is a
+# known label and no rendered choice is a raw tag.
+# ─────────────────────────────────────────────────────────────────────────────
+def test_pos_drill_renders_labels_not_tags(origin):
+    pw = pytest.importorskip("playwright.sync_api")
+    labels_file = PUBLIC / "data" / "drill" / "pos_labels.json.gz"
+    if not labels_file.is_file():
+        pytest.skip("no published pos_labels — run tools/build.py first")
+    labels = json.loads(gzip.decompress(labels_file.read_bytes()))["labels"]
+    with pw.sync_playwright() as playwright:
+        browser = None
+        context = None
+        try:
+            browser = playwright.chromium.launch()
+        except Exception as e:  # noqa: BLE001
+            pytest.skip(f"chromium unavailable: {e}")
+        try:
+            assert browser is not None
+            context = browser.new_context(service_workers="block")
+            page = context.new_page()
+            page.goto(f"{origin}/drill/")
+            page.wait_for_selector("#drill-start", timeout=25000)
+            page.select_option("#drill-work", "sahidic_ruth")
+            page.select_option("#drill-type", "pos")
+            page.click("#drill-start")
+            page.wait_for_function(
+                "() => document.querySelectorAll('#drill-choices button.hit').length > 0",
+                timeout=25000)
+            shown = page.locator("#drill-choices button.hit").all_inner_texts()
+            assert len(shown) == 4, shown
+            for text in shown:
+                assert text in labels.values(), f"{text!r} is not a known label"
+                assert text not in labels, f"raw tag rendered: {text!r}"
+            assert "[object Object]" not in page.content()
+        finally:
+            if context is not None:
+                context.close()
+            if browser is not None:
+                browser.close()

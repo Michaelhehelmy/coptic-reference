@@ -190,6 +190,24 @@
     return "";
   }
 
+  // Every POS tag in the bank must have a label before the first question
+  // renders. A bank that outruns its labels fails loudly here, not with a
+  // raw tag in front of a learner.
+  function assertLabelsCoverBank(bank, labels) {
+    var tags = {};
+    bank.items.forEach(function (item) {
+      if (drillType(item) !== "pos") return;
+      (item.choices || []).forEach(function (choice) {
+        if (typeof choice === "string" && choice !== "") tags[choice] = true;
+      });
+    });
+    Object.keys(tags).forEach(function (tag) {
+      if (posDisplay(tag, labels) === "") {
+        throw new Error("no label for POS tag " + tag);
+      }
+    });
+  }
+
   function lemmaLink(lemma) {
     return '<p class="quiz-source">Answer: <a href="/dict/?q=' +
       encodeURIComponent(lemma) + '">' + esc(lemma) + "</a></p>";
@@ -217,11 +235,25 @@
     progressEl.textContent = "";
 
     var bank;
+    var labels = null;
     try {
       if (typeof FetchJson === "undefined") {
         throw new Error("fetch_json.js did not load before drill.js");
       }
       bank = validateBank(await FetchJson.json(bankURL(type, work)), work);
+      if (type === "pos") {
+        if (typeof posDisplay !== "function") {
+          throw new Error("pos_labels.js did not load before drill.js");
+        }
+        // The labels file wraps the map ({generated, labels}); the renderer
+        // takes the map. Unwrap here, once, so a wrapped file can never
+        // reach posDisplay() as a "label".
+        var payload = await FetchJson.json(BANK_ROOT + "pos_labels.json.gz");
+        labels = payload && typeof payload === "object" && !Array.isArray(payload)
+          ? payload.labels || payload
+          : {};
+        assertLabelsCoverBank(bank, labels);
+      }
     } catch (e) {
       status.textContent = "Could not load these drills: " + (e && e.message ? e.message : e);
       return;
@@ -255,11 +287,17 @@
       scoreEl.textContent = renderScore(progress, answered, session.length);
       feedbackEl.textContent = "";
       choicesEl.innerHTML = "";
+      // Rule 11: POS tags reach the learner only through posDisplay().
+      // Anything without a label fails the bank check above, never renders.
+      function choiceText(choice) {
+        if (type === "pos") return posDisplay(choice, labels);
+        return plainText(choice);
+      }
       item.choices.forEach(function (choice, index) {
         var button = document.createElement("button");
         button.type = "button";
         button.className = "hit";
-        button.innerHTML = '<span class="choice">' + esc(choice) + "</span>";
+        button.innerHTML = '<span class="choice">' + esc(choiceText(choice)) + "</span>";
         button.addEventListener("click", function () {
           Array.prototype.forEach.call(choicesEl.querySelectorAll("button"), function (other) {
             other.disabled = true;
@@ -280,8 +318,8 @@
             progress.correct += 1;
             feedbackEl.textContent = "Correct. ";
           } else {
-            feedbackEl.textContent = "Not quite — the verse has “" +
-              item.choices[item.correct] + "”. ";
+            feedbackEl.textContent = "Not quite — the answer is “" +
+              choiceText(item.choices[item.correct]) + "”. ";
           }
           saveProgress(progress);
           feedbackEl.innerHTML = esc(feedbackEl.textContent) + answerLink(item);

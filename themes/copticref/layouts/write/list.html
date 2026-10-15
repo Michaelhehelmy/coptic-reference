@@ -1,0 +1,75 @@
+{{ define "main" }}
+<h1>Writing practice</h1>
+{{ .Content }}
+
+<noscript id="write-noscript">
+  <h2>Letters to copy</h2>
+  <p><strong>Tracing needs JavaScript.</strong> The reference shapes below
+  are the same images the canvas session measures against; copy them on
+  paper. With scripting off, there is no canvas and no feedback.</p>
+  <ul class="write-gallery">
+    <li><img src="{{ "write/svg/ref-u2c81.svg" | relURL }}" alt="Coptic letter ⲁ" width="100" height="100">ⲁ</li>
+    <li><img src="{{ "write/svg/ref-u2c83.svg" | relURL }}" alt="Coptic letter ⲃ" width="100" height="100">ⲃ</li>
+    <li><img src="{{ "write/svg/ref-u2c85.svg" | relURL }}" alt="Coptic letter ⲅ" width="100" height="100">ⲅ</li>
+    <li><img src="{{ "write/svg/ref-u2c87.svg" | relURL }}" alt="Coptic letter ⲇ" width="100" height="100">ⲇ</li>
+    <li><img src="{{ "write/svg/ref-u2c89.svg" | relURL }}" alt="Coptic letter ⲉ" width="100" height="100">ⲉ</li>
+    <li><img src="{{ "write/svg/ref-u2c8b.svg" | relURL }}" alt="Coptic letter ⲋ" width="100" height="100">ⲋ</li>
+    <li><img src="{{ "write/svg/ref-u2c8d.svg" | relURL }}" alt="Coptic letter ⲍ" width="100" height="100">ⲍ</li>
+    <li><img src="{{ "write/svg/ref-u2c8f.svg" | relURL }}" alt="Coptic letter ⲏ" width="100" height="100">ⲏ</li>
+    <li><img src="{{ "write/svg/ref-u2c91.svg" | relURL }}" alt="Coptic letter ⲑ" width="100" height="100">ⲑ</li>
+    <li><img src="{{ "write/svg/ref-u2c93.svg" | relURL }}" alt="Coptic letter ⲓ" width="100" height="100">ⲓ</li>
+    <li><img src="{{ "write/svg/ref-u2c95.svg" | relURL }}" alt="Coptic letter ⲕ" width="100" height="100">ⲕ</li>
+    <li><img src="{{ "write/svg/ref-u2c97.svg" | relURL }}" alt="Coptic letter ⲗ" width="100" height="100">ⲗ</li>
+    <li><img src="{{ "write/svg/ref-u2c99.svg" | relURL }}" alt="Coptic letter ⲙ" width="100" height="100">ⲙ</li>
+    <li><img src="{{ "write/svg/ref-u2c9b.svg" | relURL }}" alt="Coptic letter ⲛ" width="100" height="100">ⲛ</li>
+    <li><img src="{{ "write/svg/ref-u2c9d.svg" | relURL }}" alt="Coptic letter ⲝ" width="100" height="100">ⲝ</li>
+    <li><img src="{{ "write/svg/ref-u2c9f.svg" | relURL }}" alt="Coptic letter ⲟ" width="100" height="100">ⲟ</li>
+    <li><img src="{{ "write/svg/ref-u2ca1.svg" | relURL }}" alt="Coptic letter ⲡ" width="100" height="100">ⲡ</li>
+    <li><img src="{{ "write/svg/ref-u2ca3.svg" | relURL }}" alt="Coptic letter ⲣ" width="100" height="100">ⲣ</li>
+    <li><img src="{{ "write/svg/ref-u2ca5.svg" | relURL }}" alt="Coptic letter ⲥ" width="100" height="100">ⲥ</li>
+    <li><img src="{{ "write/svg/ref-u2ca7.svg" | relURL }}" alt="Coptic letter ⲧ" width="100" height="100">ⲧ</li>
+    <li><img src="{{ "write/svg/ref-u2ca9.svg" | relURL }}" alt="Coptic letter ⲩ" width="100" height="100">ⲩ</li>
+    <li><img src="{{ "write/svg/ref-u2cab.svg" | relURL }}" alt="Coptic letter ⲫ" width="100" height="100">ⲫ</li>
+    <li><img src="{{ "write/svg/ref-u2cad.svg" | relURL }}" alt="Coptic letter ⲭ" width="100" height="100">ⲭ</li>
+    <li><img src="{{ "write/svg/ref-u2caf.svg" | relURL }}" alt="Coptic letter ⲯ" width="100" height="100">ⲯ</li>
+    <li><img src="{{ "write/svg/ref-u2cb1.svg" | relURL }}" alt="Coptic letter ⲱ" width="100" height="100">ⲱ</li>
+    <li><img src="{{ "write/svg/ref-u03e3.svg" | relURL }}" alt="Coptic letter ϣ" width="100" height="100">ϣ</li>
+    <li><img src="{{ "write/svg/ref-u03e5.svg" | relURL }}" alt="Coptic letter ϥ" width="100" height="100">ϥ</li>
+    <li><img src="{{ "write/svg/ref-u03e9.svg" | relURL }}" alt="Coptic letter ϩ" width="100" height="100">ϩ</li>
+    <li><img src="{{ "write/svg/ref-u03e7.svg" | relURL }}" alt="Coptic letter ϧ" width="100" height="100">ϧ</li>
+    <li><img src="{{ "write/svg/ref-u03eb.svg" | relURL }}" alt="Coptic letter ϫ" width="100" height="100">ϫ</li>
+    <li><img src="{{ "write/svg/ref-u03ed.svg" | relURL }}" alt="Coptic letter ϭ" width="100" height="100">ϭ</li>
+    <li><img src="{{ "write/svg/ref-u03ef.svg" | relURL }}" alt="Coptic letter ϯ" width="100" height="100">ϯ</li>
+    <li><img src="{{ "write/svg/ref-word-amen.svg" | relURL }}" alt="Coptic word ⲁⲙⲏⲛ" width="100" height="100">ⲁⲙⲏⲛ</li>
+    <li><img src="{{ "write/svg/ref-word-petros.svg" | relURL }}" alt="Coptic word ⲡⲉⲧⲣⲟⲥ" width="100" height="100">ⲡⲉⲧⲣⲟⲥ</li>
+    <li><img src="{{ "write/svg/ref-word-maria.svg" | relURL }}" alt="Coptic word ⲙⲁⲣⲓⲁ" width="100" height="100">ⲙⲁⲣⲓⲁ</li>
+  </ul>
+</noscript>
+
+<form id="write-controls" aria-label="Writing options">
+  <p>
+    <label for="write-glyph">Letter or word</label>
+    <select id="write-glyph" autocomplete="off"></select>
+  </p>
+</form>
+
+<div id="write-reference" aria-live="polite">
+  <p id="write-reference-text" class="write-big"></p>
+  <p><img id="write-reference-img" alt="" width="140" height="140"></p>
+</div>
+
+<p id="write-status" class="note" role="status">Choose a letter, then trace it.</p>
+<div id="write-app" aria-live="polite">
+  <canvas id="write-canvas" width="280" height="280" aria-label="Tracing canvas: draw the letter here"></canvas>
+  <p>
+    <button id="write-check" type="button">Check my tracing</button>
+    <button id="write-clear" type="button">Clear</button>
+  </p>
+  <p id="write-feedback" class="note" role="status"></p>
+</div>
+
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, and write.js
+     calls it. Same discipline as the quiz, drill, and course pages. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/write.js" | relURL }}" defer></script>
+{{ end }}

@@ -61,8 +61,10 @@ anywhere.</p>
   <button id="drill-reset" type="button">Clear progress on this browser</button>
 </p>
 
-<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, and drill.js
-     calls it. Same discipline as the quiz page. -->
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, pos_labels.js
+     defines posDisplay, and drill.js calls both. POS tags reach the learner
+     only through that one function. -->
 <script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/pos_labels.js" | relURL }}" defer></script>
 <script src="{{ "js/drill.js" | relURL }}" defer></script>
 {{ end }}
