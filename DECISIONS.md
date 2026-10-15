@@ -2591,3 +2591,62 @@ another correct answer for the displayed prompt.
 `coptic-quiz-progress-v1`. Missed items are due in the next session; consecutive
 successes wait longer. Export and import use a validated JSON document because a
 learner may change devices. No server receives anything.
+
+---
+
+## Session 17 — rule-based transliterator wired into the merge (D0–D5)
+
+### D1: translit is derived at merge time, and the strict check caught a real typo
+
+`tools/merge/entries.py::merge_group` now calls
+`emit.translit.transliterate_all_strict(lemma)`; the old precedence loop
+always produced `{}` because no upstream record carries per-scheme
+transliteration. Entry count 11,369 → 11,369, `collation_hash`
+b7b49af6e144ef87 unchanged, zero non-translit field diffs vs the old merge.
+11,361 entries carry all five non-empty scheme strings; 8 vowel-only lemmas
+(ⲁ ⲉ̅ ⲉⲱ ⲏ︦ ⲟ̄ ⲱ ⲱⲉ ⲱⲱ) have an empty *egyptological* value only — a
+consonantal skeleton of a vowel has nothing in it, which is the U5 scheme
+working, not the feature missing.
+
+C3 worked as designed on first contact: `test_merge_emit.py`'s TENOU fixture
+used chr(0x238F) (OPEN-CIRCUIT-OUTPUT H-TYPE SYMBOL) for ⲟ (U+2C9F), a
+hand-typed-codepoint typo nothing had ever looked at. The strict merge
+refused it naming `U+238F`. One-codepoint fixture fix; `test_collate.py`'s
+`\u238F` literals untouched (there any codepoint serves the total-order
+checks). D1 also extended the table (ⳉ->ẍ per ALA-LC; Greek ι->i per ALA-LC
+Greek; ⳋ->h as U7) and added R9 editorial passthrough plus U7
+(ⲋ/ⳇ visibly unmapped, 14 entries) after measuring 676 affected entries.
+
+Pre-existing emit bug fixed to allow any rebuild: `tools/emit/cli.py` resolved
+the prior LICENSES manifest (possibly `.csv.gz`) then opened it as text,
+crashing on gzip magic. It now reads via `safeio.read_maybe_gzip`, the
+pattern its own Session 7 C4 comment prescribes. `static/js/translit.js` was
+NOT touched: its working-tree diff is functionally equivalent but not
+strictly whitespace-only (one behavior-preserving statement reorder, one
+comment rewording), so D5 excludes it.
+
+### D2: Kaikki divergence notes — the rule is right, the expectation differs
+
+Cross-check on 24 words: 14 agree exactly, 4 absent (no Kaikki record),
+6 diverge on four systematic Wiktionary-vs-ALA-LC letters. In each case the
+shipped scheme follows ALA-LC 2014; change the expectation, not the rule,
+unless a cited grammar says otherwise:
+
+- ⲛϭⲓ nkyi (ours) vs nči (Kaikki): ALA-LC ϭ=ky is the library convention; Kaikki č is pronunciation spelling.
+- ϫⲉ če vs je: ALA-LC ϫ=č; Kaikki j is the English-oriented Wiktionary rendering.
+- ⲭⲣⲓⲥⲧⲟⲥ christos vs khristos: ALA-LC (and DBMNT) ⲭ=ch; Kaikki kh follows Greek-transliteration habit.
+- ⲥϧⲏⲟⲩⲧ shēout vs sxēout: ours h rests on the CDO S/B cognate ϩⲉⲛ/ϧⲉⲛ (C6668); Kaikki x encodes the fricative value — defensible, but ours keeps the dialects consistent.
+- ⲁⲣⲭⲏ archē vs arkhē: same χ convention as christos/khristos — ALA-LC ch stands.
+- ϭⲟⲓⲥ kyois vs čois: same ϭ convention as nkyi/nči — ALA-LC ky stands.
+
+### D4: U4/U5 stay UNVERIFIED — the sources that would close them
+
+U4 (layton ⲧ->ṯ): Layton's own examples use plain t (hm-p-ran, hetb-psychē in
+Zeldes & Schroeder 2016, citing Layton 2011), so Layton 2000 Table 1 is
+unlikely to close this — the ṯ shape belongs to the Egyptological convention
+(Manuel de Codage). A future pass should either cite MdC for the layton
+scheme explicitly or drop ṯ back to t. U5 (Egyptological vowel stripping):
+no published rule maps Coptic ⲧⲉⲛⲟⲩ->tnw; sources to check are Schenkel's
+*Tübinger Einführung*, Allen's *Middle Egyptian*, or Grossman–Haspelmath–
+Richter 2015 (Leipzig–Jerusalem) § on consonantal mapping. Until one is
+verified in hand, both stay UNVERIFIED and applied.

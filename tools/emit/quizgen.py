@@ -26,14 +26,16 @@ with ties broken deterministically by `norm_key` and then entry id. Only
 entries with a positive corpus total can be banded; an untested word has no
 frequency and therefore no band.
 
-Transliteration prompts are the one intentionally subtle case. The live shards
-currently contain no nonempty `translit` schemes, but they do contain
-Kaikki-derived source forms with `kind == "romanization"`. Those are data, so a
-`transliteration_to_coptic` item may use one — but only through the single
-renderer, `static/js/translit.js`, invoked here through
-`tools/emit/translit_probe.mjs`. The generator never constructs or normalizes a
-romanization itself. It records the source form's index, so the string can be
-reread from the shard.
+Transliteration prompts read the rule-based `translit` object every entry has
+carried since Session 17 D1 (scheme "bohairic", the site default), rendered —
+as always — only through the single renderer, `static/js/translit.js`,
+invoked here through `tools/emit/translit_probe.mjs`. The generator never
+constructs or normalizes a transliteration itself. The Kaikki
+`forms.romanization` fallback is retired: those forms remain in the shards as
+source data and as the transliterator's cross-check, but no quiz prompt is
+built from them. Each item snapshots the entry's full five-scheme object, so
+the string can be reread from the shard and the UI's
+translitDisplay()-equality check keeps holding.
 
 Distractor discipline:
 
@@ -522,6 +524,22 @@ def english_to_coptic_items(
     return items
 
 
+#: Session 17 D3: the quiz prompts a rule-based scheme, not the Kaikki
+#: fallback. Bohairic is the site default (translit.js falls back to it) and
+#: is never empty in the shipped data (only egyptological has rule-implied
+#: empties, for vowel-only lemmas).
+TRANSLIT_QUIZ_SCHEME = "bohairic"
+
+
+def scheme_translit(entry: dict, scheme: str = TRANSLIT_QUIZ_SCHEME) -> str:
+    """One entry's rule-based transliteration for a scheme, or "" if absent."""
+    translit = entry.get("translit")
+    if not isinstance(translit, dict):
+        return ""
+    value = translit.get(scheme)
+    return value.strip() if isinstance(value, str) else ""
+
+
 def transliteration_items(
     entries: list[dict],
     coordinates: dict[str, dict],
@@ -530,21 +548,20 @@ def transliteration_items(
     band: str,
 ) -> list[dict]:
     pool = banded(entries, ranks, band)
-    candidates = [entry for entry in pool if romanization_forms(entry)]
+    candidates = [entry for entry in pool if scheme_translit(entry)]
     prompts = render_transliterations([
         {"translit": entry.get("translit") or {},
-         "forms": entry.get("forms") or [],
-         "scheme": "romanization"}
+         "forms": [],
+         "scheme": TRANSLIT_QUIZ_SCHEME}
         for entry in candidates
     ])
     usable: list[tuple[dict, str]] = []
     for entry, prompt in zip(candidates, prompts):
         if not prompt:
             continue
-        forms = romanization_forms(entry)
-        form_index = next((index for index, text in forms if text == prompt), None)
-        if form_index is None:
-            raise fail(f"{entry['id']}: renderer prompt {prompt!r} is not a source form")
+        if prompt != scheme_translit(entry):
+            raise fail(f"{entry['id']}: renderer prompt {prompt!r} is not "
+                       f"the shipped {TRANSLIT_QUIZ_SCHEME} value")
         usable.append((entry, prompt))
     seen: dict[str, dict] = {}
     for entry, prompt in usable:
@@ -552,50 +569,32 @@ def transliteration_items(
         if key not in seen:
             seen[key] = entry
     pool = list(seen.values())
-    source_forms = {
-        entry["id"]: next(
-            text for _, text in romanization_forms(entry)
-            if choice_key(text) == choice_key(
-                next(prompt for candidate, prompt in usable if candidate["id"] == entry["id"]))
-        )
-        for entry in pool
-    }
+    by_id = {entry["id"]: prompt
+             for entry, prompt in usable if entry["id"] in {e["id"] for e in pool}}
     choice_texts = {entry["id"]: {entry["lemma"]} for entry in pool}
     forbidden_by_id = {entry["id"]: {choice_key(entry["lemma"])} for entry in entries}
     items: list[dict] = []
     for target in pool:
         if len(items) >= TARGETS_PER_BAND:
             break
-        prompt = next(prompt for candidate, prompt in usable if candidate["id"] == target["id"])
+        prompt = by_id[target["id"]]
         try:
             distractors = choose_distractor_entries(
                 target, pool, totals, ranks, choice_texts, forbidden_by_id[target["id"]])
         except QuizGenError:
             continue
-        if any(prompt in {text for _, text in romanization_forms(candidate)}
-               for candidate in distractors):
+        if any(scheme_translit(candidate) == prompt for candidate in distractors):
             continue
         choices = [target["lemma"], *(d["lemma"] for d in distractors)]
-        form_index = next(
-            index for index, text in romanization_forms(target) if text == prompt)
-        forms = target.get("forms") or []
-        raw_form = forms[form_index] if 0 <= form_index < len(forms) else {}
-        source_form = raw_form if isinstance(raw_form, dict) else {}
         snapshot = target.get("translit")
         item = entry_item(
             "transliteration_to_coptic",
             TYPE_SPECS["transliteration_to_coptic"]["prefix"],
             len(items) + 1, prompt, choices, 0, target, coordinates,
             ranks, totals, "romanization", "lemma",
-            source={"translit_scheme": "romanization",
-                    "translit_source": "forms.romanization",
-                    "form_index": form_index,
-                    "translit_snapshot": snapshot if isinstance(snapshot, dict) else {},
-                    "romanization_forms": [{
-                        "form": source_form.get("form", ""),
-                        "kind": "romanization",
-                        "pos": source_form.get("pos"),
-                    }]})
+            source={"translit_scheme": TRANSLIT_QUIZ_SCHEME,
+                    "translit_source": f"translit.{TRANSLIT_QUIZ_SCHEME}",
+                    "translit_snapshot": snapshot if isinstance(snapshot, dict) else {}})
         item["source"]["choice_sources"] = [entry_source(d, coordinates) for d in distractors]
         items.append(item)
     if len(items) < 10:

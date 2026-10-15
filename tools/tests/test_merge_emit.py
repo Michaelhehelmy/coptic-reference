@@ -27,7 +27,12 @@ import collate  # noqa: E402
 import entries as merge  # noqa: E402
 from cli import assert_coptic_order, emit  # noqa: E402
 
-TENOU = chr(0x2CA7) + chr(0x2C89) + chr(0x2C9B) + chr(0x238F) + chr(0x2CA9)
+TENOU = chr(0x2CA7) + chr(0x2C89) + chr(0x2C9B) + chr(0x2C9F) + chr(0x2CA9)
+# Session 17 D1: the fourth codepoint was 0x238F (OPEN-CIRCUIT-OUTPUT H-TYPE
+# SYMBOL) instead of 0x2C9F (COPTIC SMALL LETTER O). Nothing caught it because
+# no code ever looked at the characters. The strict transliterator refused it
+# naming U+238F — C3 working as designed. test_collate.py's \u238F literals
+# are untouched: there any codepoint serves the total-order checks.
 AN = chr(0x2C81) + chr(0x2C9B)
 NAI = chr(0x2C9B) + chr(0x2C81) + chr(0x2C93)
 SHIN_CAP = chr(0x03E2) + chr(0x2C81) + chr(0x2C93)   # capital shin + ai

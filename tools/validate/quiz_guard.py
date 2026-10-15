@@ -353,34 +353,40 @@ def check_lexical(item: dict, filename: str, entries: dict, coordinates: dict,
                 errors.append(f"{filename} {item['id']}: distractor {candidate['id']} "
                               f"also has the prompt gloss")
     elif item["type"] == "transliteration_to_coptic":
+        # Session 17 D3: prompts are rule-based scheme values, not Kaikki
+        # romanizations. The snapshot must carry the scheme, the shipped entry
+        # must agree, and the renderer must reproduce the prompt.
+        scheme = source.get("translit_scheme")
         snapshot = source.get("translit_snapshot", {})
-        source_roman_forms = source.get("romanization_forms", [])
-        if not isinstance(snapshot, dict) or not isinstance(source_roman_forms, list):
+        if scheme not in ("bohairic", "sahidic", "layton", "till",
+                          "egyptological"):
+            errors.append(f"{filename} {item['id']}: translit_scheme is not a "
+                          f"shipped scheme")
+            return
+        if not isinstance(snapshot, dict) or not snapshot.get(scheme):
             errors.append(f"{filename} {item['id']}: missing transliteration source payload")
+            return
+        shipped = target.get("translit") or {}
+        if not isinstance(shipped, dict) or shipped.get(scheme) != snapshot.get(scheme):
+            errors.append(f"{filename} {item['id']}: snapshot does not match "
+                          f"the shipped translit.{scheme}")
             return
         rendered = render_transliterations([{
             "translit": snapshot,
-            "forms": source_roman_forms,
-            "scheme": "romanization",
+            "forms": [],
+            "scheme": scheme,
         }])[0]
         if item["prompt"] != rendered or not rendered:
             errors.append(f"{filename} {item['id']}: prompt is not translitDisplay()")
-        forms = [form for form in target.get("forms") or [] if isinstance(form, dict)]
-        form_index = source.get("form_index")
-        if (not isinstance(form_index, int) or not 0 <= form_index < len(forms)
-                or display(forms[form_index].get("form", ""))
-                != display(source_roman_forms[0].get("form", "") if source_roman_forms else "")):
-            errors.append(f"{filename} {item['id']}: romanization payload does not "
-                          f"match the source form")
-        if source.get("translit_scheme") != "romanization":
-            errors.append(f"{filename} {item['id']}: missing romanization provenance")
+        if source.get("translit_source") != f"translit.{scheme}":
+            errors.append(f"{filename} {item['id']}: missing scheme provenance")
         if correct != target["lemma"]:
             errors.append(f"{filename} {item['id']}: correct choice is not the source lemma")
         for candidate in distractors:
-            roman = {clean for _, clean in roman_forms(candidate)}
-            if normalized(item["prompt"]) in {normalized(text) for text in roman}:
+            candidate_translit = candidate.get("translit") or {}
+            if normalized(item["prompt"]) == normalized(candidate_translit.get(scheme, "")):
                 errors.append(f"{filename} {item['id']}: distractor {candidate['id']} "
-                              f"shares the prompt romanization")
+                              f"shares the prompt transliteration")
     elif item["type"] == "lemma_identification":
         form_index = source.get("form_index")
         forms = [form for form in target.get("forms") or [] if isinstance(form, dict)]

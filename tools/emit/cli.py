@@ -181,9 +181,13 @@ def emit(entries: list[dict], dist: pathlib.Path, *,
         # we already know.
         prior_csv = safeio.resolve_readable(old_csv)
         if prior_csv.is_file():
-            with prior_csv.open(newline="", encoding="utf-8") as fh:
-                for r in csv.DictReader(fh):
-                    existing[r["id"]] = r
+            # Session 17 D1: resolve_readable may return the .gz shipped form;
+            # opening gzip bytes as text crashed the emit (UnicodeDecodeError
+            # on 0x8b). Read through the resolver that gunzips (same pattern
+            # as dry_run.py's undocumented-manifest injection).
+            text = safeio.read_maybe_gzip(prior_csv).decode("utf-8")
+            for r in csv.DictReader(text.splitlines()):
+                existing[r["id"]] = r
     except OSError as e:
         print(f"[emit] LICENSES.csv: cannot read the previous version ({e}). "
               f"name/originators/reference/notes will be blank for rows that are "

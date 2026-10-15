@@ -65,6 +65,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import collate
 import pos as posvocab  # noqa: E402  (Session 6 D2)
+from emit import translit as translit_mod  # noqa: E402  (Session 17 D1)
 
 PIPELINE_VERSION = "3.0.0"
 
@@ -286,16 +287,18 @@ def merge_group(records: list[dict]) -> dict | None:
                 item["note"] = f["note"]
             forms.append(item)
 
-    # ── translit: first by precedence that supplies one ──────────────────────
-    translit: dict[str, str] = {}
-    for sid in SENSE_PRECEDENCE:
-        for r in records:
-            if r["sources"][0]["id"] == sid and r.get("translit"):
-                for k, v in r["translit"].items():
-                    translit.setdefault(k, v)
-                break
-
+    # ── translit: rule-based, all five schemes (Session 17 D1) ───────────────
+    # Upstream records carry no per-scheme transliteration, so the old
+    # precedence loop always produced {}. Derive it from the D0
+    # transliterator instead — at merge time (C1), never at emit time.
+    # Strict (C3): an unmappable character fails naming the entry id and the
+    # character, never a silent partial string.
     tla = next((r.get("tla_id") for r in records if r.get("tla_id")), None)
+    eid = entry_id(lemma, pos, tla)
+    try:
+        translit: dict[str, str] = translit_mod.transliterate_all_strict(lemma)
+    except translit_mod.TranslitError as exc:
+        raise MergeError(f"entry {eid} lemma {lemma!r}: {exc}") from exc
 
     # ── sources[] and attributions[] (v4 §8.2) ──────────────────────────────
     sources = []
@@ -338,7 +341,7 @@ def merge_group(records: list[dict]) -> dict | None:
         })
 
     return {
-        "id": entry_id(lemma, pos, tla),
+        "id": eid,  # computed above so C3 errors name the shipped id
         "lemma": lemma,
         "display": lemma,
         "norm_key": key,
