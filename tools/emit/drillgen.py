@@ -16,6 +16,14 @@ and measuring showed two-thirds of the looser pool was functional
 morphology. Lexical choice is answerable from one verse; agreement often is
 not. See DECISIONS.md Session 19 D1.
 
+PLAIN LANGUAGE (Session 20 C2). Drills blank only everyday content words —
+names, things, actions, descriptions, numbers. Little grammar words (the,
+and, he, she, not, will, that) are never blanked, because guessing them
+from a single verse is often a coin flip while guessing a missing noun or
+verb is a fair test of reading. If a future linguist disagrees, the
+one-line change is the LEXICAL_POS set above, and drill_guard.py will judge
+the new output the same way.
+
 DISTRACTORS. Three surface forms from lemmas sharing the removed token's POS
 and frequency band (beginner/intermediate/advanced by lemma-frequency rank,
 same 300/1,000 thresholds as quizgen BAND_LIMITS), ordered deterministically
@@ -227,6 +235,7 @@ def build_items(slug: str, tokens: list[dict], totals: dict[str, int],
                 if position + 1 < len(verse) else None
             items.append({
                 "id": item_id,
+                "drill_type": "cloze",
                 "type": "cloze",
                 "work_slug": slug,
                 "verse_index": verse_index,
