@@ -507,3 +507,26 @@ def test_reader_usage_guard_is_clean_on_the_real_tree():
     """The shipped tree holds no direct opens of pipeline artefacts."""
     rug = _rug()
     assert rug.check() == []
+
+
+def test_reader_usage_guard_catches_a_split_line_open(tmp_path):
+    """E31 reproduction: path assigned on one line, opened two lines later.
+
+    The Session 18 line-regex could not match a verb and a path on different
+    lines (`dict_index.py:135`). The AST implementation resolves the variable
+    and must flag this shape.
+    """
+    rug = _rug()
+    planted = tmp_path / "splitter.py"
+    planted.write_text(
+        'import json\n'
+        'hdr_path = args.dict_dir / "index.json"\n'
+        'if hdr_path.is_file():\n'
+        '    header = json.loads(hdr_path.read_text(encoding="utf-8"))\n',
+        encoding="utf-8")
+    verb_line = '    header = json.loads(hdr_path.read_text(encoding="utf-8"))'
+    assert not (rug.PY_VERB.search(verb_line) and rug.PY_BARE.search(verb_line)), \
+        "fixture error: the line regex alone would catch this; not an E31 shape"
+    hits = rug.check_python_file(planted)
+    assert len(hits) == 1, f"expected exactly one hit, got {hits}"
+    assert "splitter.py:4" in hits[0], hits[0]  # the read_text call site

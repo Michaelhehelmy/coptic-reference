@@ -589,6 +589,30 @@ the guard's scope; `tools/parse/*` and `tools/fetch/*` are the designated
 ingest readers. See `COVERAGE.md` for what the guard would pass silently.
 
 
+## Rule 13 — a guard ships with the test that would catch its class
+
+A guard that closes a class needs a test that reproduces the class. Not a
+clean-run test — a test that plants an instance of the class and fails if the
+guard passes. This test must exist before the guard is trusted, and it must
+be added to COVERAGE.md alongside the guard.
+
+```python
+# Wrong: the guard passes on the real tree. So what? A guard that cannot
+# fail is decoration (this bit us in Session 18: the first version scanned
+# tools/tools/, found nothing, and printed OK).
+assert check() == []
+
+# Right: plant the violation, watch the guard name the file.
+planted.write_text('json.loads((d / "dict" / "index.json").read_text())')
+hits = check_python_file(planted)
+assert len(hits) == 1 and "index.json" in hits[0]
+```
+
+The clean run tells you the tree is clean today. Only the planted failure
+tells you the guard works. Both ship together, and COVERAGE.md names the
+reproducing test next to the guard it vouches for.
+
+
 ## A missing required input is a build failure, never a warning
 
 Session 14 shipped a build that printed

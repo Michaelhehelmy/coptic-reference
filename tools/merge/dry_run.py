@@ -292,7 +292,10 @@ def run(inject_kind: str, real: bool = False, dist: pathlib.Path | None = None) 
         src_manifest = safeio.resolve_readable(
             ROOT / "data" / "dist" / "provenance" / "LICENSES.csv")
         manifest = dist / "provenance" / src_manifest.name
-        shutil.copy(src_manifest, manifest)
+        # Session 19 D0 (Rule 12): byte-exact copy through the verified
+        # writer (the inner read nests inside the mediated call, which the
+        # guard exempts). shutil.copy would bypass verification.
+        safeio.write_verified(manifest, src_manifest.read_bytes())
         if inject_kind == "undocumented":
             # An allowlisted source whose licence was never documented. The
             # entry itself is perfectly clean and allowlisted — only the

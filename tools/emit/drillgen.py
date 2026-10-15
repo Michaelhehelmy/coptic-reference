@@ -6,14 +6,15 @@ drills teach grammar-in-context: one content token removed per corpus verse,
 four attested surface forms to choose from, every item traceable to data.
 No authoring cost, no generated content, no accounts, no server.
 
-WHAT COUNTS AS REMOVABLE. A token is blankable iff its POS is content:
-anything except ART (article), PREP (preposition), PUNCT (a blanked full
-stop has no lexical answer), and fused bound forms (tags containing
-"_PPERO"/"_PPERS", e.g. PREP_PPERO, APST_PPERS: a fused preposition+pronoun
-or auxiliary+pronoun is bound morphology, the "bound marker" of the brief).
-Function words stay visible in the verse; only content tokens are blanked.
-The fused-tag reading of "bound marker" is an interpretation, stated here so
-a linguist can correct it (Sahidic/Bohairic Scriptorium tagset).
+WHAT COUNTS AS REMOVABLE. A token is blankable iff its POS is one of the
+open lexical classes (N, NPROP, V, VSTAT, ADV, NUM). Everything else —
+articles, prepositions, punctuation, fused bound forms, pronouns,
+conjunctions, converters, tense/aspect/negation markers, copula — stays
+visible. Session 19 D1 chose this over blanking every segmented token: the
+Ruth sample item blanked a bound subject clitic (ⲁ___ϣⲱⲡⲉ, choices ⲕ/ⲩ/ⲥ/ⲛ),
+and measuring showed two-thirds of the looser pool was functional
+morphology. Lexical choice is answerable from one verse; agreement often is
+not. See DECISIONS.md Session 19 D1.
 
 DISTRACTORS. Three surface forms from lemmas sharing the removed token's POS
 and frequency band (beginner/intermediate/advanced by lemma-frequency rank,
@@ -63,21 +64,22 @@ TARBALL = ROOT / "data" / "dist" / "corpus" / "corpus.tar.gz"
 DRILL_DIR = ROOT / "data" / "dist" / "drill"
 DRILL_SEED = "drillgen-v1"
 
-#: POS never blanked. ART/PREP per brief; PUNCT (no lexical answer); fused
-#: bound forms (the brief's "bound marker", interpretation documented above).
-NON_REMOVABLE_PREFIXES = ("ART", "PREP", "PUNCT")
-NON_REMOVABLE_INFIX = ("_PPERO", "_PPERS")
+#: Session 19 D1 decision (b): blankable POS are the open lexical classes
+#: only — N (noun), NPROP (proper noun), V (verb), VSTAT (stative), ADV
+#: (adverb), NUM (numeral). Everything else stays visible: articles,
+#: prepositions, punctuation, fused bound forms, and ALL functional material
+#: (pronouns PPERS/PPERO/PPOS/PDEM, conjunctions, converters CREL/CCIRC,
+#: tense/aspect/negation markers, copula). Reason: under the looser reading
+#: two-thirds of blankable tokens were bound/functional morphology (measured
+#: 24k of 35k), and single-verse agreement choices are frequently
+#: underdetermined, while lexical choice is answerable from the verse.
+#: Coverage cost is negligible (2,591 of 2,601 verses keep a lexical slot).
+LEXICAL_POS = frozenset({"N", "NPROP", "V", "VSTAT", "ADV", "NUM"})
 
 
 def is_blankable(pos: str) -> bool:
     """Content-token test. Anything else stays visible in the verse."""
-    if not isinstance(pos, str) or not pos:
-        return False
-    if pos in NON_REMOVABLE_PREFIXES or pos.startswith(("ART", "PREP", "PUNCT")):
-        return False
-    if any(infix in pos for infix in NON_REMOVABLE_INFIX):
-        return False
-    return True
+    return isinstance(pos, str) and pos in LEXICAL_POS
 
 
 def fail(message: str) -> SystemExit:

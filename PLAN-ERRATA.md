@@ -458,3 +458,16 @@ limitation in the guard's docstring and in COVERAGE.md rather than fixed by
 making the guard track variables — a variable-tracking linter is a project
 of its own, and an honest limitation beats a clever heuristic nobody can
 audit.
+
+### E32 — the line-grep guard needed an AST (reader_usage_guard rewrite)
+
+Session 18's guard matched verbs and paths on the same line; E31 documented
+the split-line shape it could not see. Session 19 rewrote it on `ast`:
+calls have path expressions resolved (constants joined through `/`,
+f-string parts, variables followed transitively with per-function scopes
+and a cycle guard), keeping the regexes as a file-level pre-filter. The
+rewrite over-reached twice before shipping — file-wide variable merging
+flagged three innocent vault writes, harvesting content arguments flagged
+vault prose mentioning `data/dist` — and both were fixed by narrowing
+(path-position args only, per-function scopes) rather than by exemption.
+The E31 shape has a reproducing test the old regex provably misses.

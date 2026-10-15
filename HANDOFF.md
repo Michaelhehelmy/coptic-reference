@@ -644,6 +644,24 @@ enforces the rule: shard reads/writes go through `shardio`, everything else
 dual-form through `safeio`, browser fetches through `fetch_json.js`. A second
 way to open the same bytes is how one of the two becomes wrong.
 
+**Rule 13. A guard that closes a class needs a test that reproduces the
+class. Not a clean-run test — a test that plants an instance of the class
+and fails if the guard passes. This test must exist before the guard is
+trusted, and it must be added to COVERAGE.md alongside the guard.**
+
+Session 19 is the evidence. The reader-usage guard first shipped line-based
+and passed vacuously on a wrong scan root — proven only when a planted
+`open()` and a planted `fetch()` were confirmed to fail naming the file.
+The negative controls are the reason the guard is trusted, not the clean
+run. Every guard from here on ships with its class-reproducing test, and
+COVERAGE.md records the test next to the guard it vouches for.
+
+**On unsigned commits.** Commits in this repository are unsigned, by policy,
+not by accident: there is no signing key, and nothing in the pipeline or the
+deploy verifies signatures. `GIT_SIGN_COMMITS` may be enabled in a
+contributor's environment; commits made here will then report a signing
+failure and land unsigned, which is the expected state. See SHIP.md.
+
 ## 9. Emergency procedures
 
 Full commands and rollback plans: **`RUNBOOK.md`**. In short:
