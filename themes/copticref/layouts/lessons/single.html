@@ -1,0 +1,13 @@
+{{ define "main" }}
+<article>
+  <h1>{{ .Title }}</h1>
+  {{ if not .Params.lesson.grammar_claims_verified }}
+  <p class="note" id="grammar-claims-banner"><strong>Grammar claims in this
+  lesson have not been independently verified.</strong> Word meanings are
+  checked against the dictionary on every build; claims about how the
+  language works await a reviewer. See the
+  <a href="{{ "/grammar-claims/" | relURL }}">claims register</a>.</p>
+  {{ end }}
+  {{ .Content }}
+</article>
+{{ end }}

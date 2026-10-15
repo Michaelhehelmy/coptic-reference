@@ -175,11 +175,19 @@ def _parse_verse():
             _tok(0, 2, "ϣⲱⲡⲉ", "ϣⲱⲡⲓ", "VSTAT")]
 
 
+def _parse_labels(bankdir: pathlib.Path, mapping: dict) -> None:
+    (bankdir / "pos_labels.json.gz").write_bytes(gzip.compress(
+        json.dumps({"labels": mapping}).encode("utf-8"),
+        compresslevel=9, mtime=0))
+
+
 def test_parsedrill_guard_accepts_a_fair_item(tmp_path):
     tarball = _tarball(tmp_path, [_parse_verse()])
     bankdir = tmp_path / "drill"
     bankdir.mkdir()
     _parse_bank(bankdir, [_parse_item()])
+    _parse_labels(bankdir, {"PPERS": "personal pronoun", "ART": "article",
+                            "N": "noun", "V": "verb"})
     count, errors = parsedrill_guard.check(bankdir, tarball)
     assert (count, errors) == (1, [])
 
@@ -189,6 +197,8 @@ def test_parsedrill_guard_rejects_a_wrong_correct_answer(tmp_path):
     bankdir = tmp_path / "drill"
     bankdir.mkdir()
     _parse_bank(bankdir, [_parse_item(correct=2)])
+    _parse_labels(bankdir, {"PPERS": "personal pronoun", "ART": "article",
+                            "N": "noun", "V": "verb"})
     _, errors = parsedrill_guard.check(bankdir, tarball)
     assert any("not the annotated" in e for e in errors)
 
@@ -198,5 +208,38 @@ def test_parsedrill_guard_rejects_a_normalized_equal_distractor(tmp_path):
     bankdir = tmp_path / "drill"
     bankdir.mkdir()
     _parse_bank(bankdir, [_parse_item(choices=["PPERS", "ppers", "N", "V"])])
+    _parse_labels(bankdir, {"PPERS": "personal pronoun", "ppers": "x",
+                            "N": "noun", "V": "verb"})
     _, errors = parsedrill_guard.check(bankdir, tarball)
     assert any("after normalization" in e for e in errors)
+
+
+def test_parsedrill_guard_requires_labels_for_bank_tags(tmp_path):
+    tarball = _tarball(tmp_path, [_parse_verse()])
+    bankdir = tmp_path / "drill"
+    bankdir.mkdir()
+    _parse_bank(bankdir, [_parse_item()])
+    (bankdir / "pos_labels.json.gz").write_bytes(gzip.compress(
+        json.dumps({"labels": {"ART": "article"}}).encode("utf-8"),
+        compresslevel=9, mtime=0))
+    _, errors = parsedrill_guard.check(bankdir, tarball)
+    assert any("PPERS" in e and "no label" in e for e in errors), errors
+
+
+def test_parsedrill_guard_rejects_a_trivial_identity_item(tmp_path):
+    bankdir = tmp_path / "drill"
+    bankdir.mkdir()
+    item = _parse_item(drill_type="lemma", id="l-w-00000", token_index=0,
+                       choices=["ⲁ", "ⲛⲑⲟϥ", "ⲛⲑⲱⲟⲩ", "ⲡⲓ"], correct=0,
+                       source={"form": "ⲁ", "lemma": "ⲁ", "pos": "ART",
+                               "func": "det", "freq_band": "beginner",
+                               "distractor_lemmas": ["ⲛⲑⲟϥ"]})
+    verse = [_tok(0, 0, "ⲁ", "ⲁ", "ART"),
+             _tok(0, 1, "ⲥ", "ⲛⲧⲟⲥ", "PPERS"),
+             _tok(0, 2, "ϣⲱⲡⲉ", "ϣⲱⲡⲓ", "VSTAT")]
+    tarball = _tarball(tmp_path, [verse])
+    item["tokens"] = [tok["form"] for tok in verse]
+    _parse_bank(bankdir, [item])
+    _parse_labels(bankdir, {"ART": "article"})
+    _, errors = parsedrill_guard.check(bankdir, tarball)
+    assert any("trivial" in e for e in errors), errors

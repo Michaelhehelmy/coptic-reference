@@ -75,7 +75,7 @@ checkpoint: quiz ≥ 70%.
 ### Lesson 6 — Pronouns that point
 prerequisite: 5. reading: Reintges, personal pronouns. vocabulary
 (intermediate, pronouns-as-lemmas for recognition only): ⲁⲛⲟⲕ ⲛⲧⲟⲕ ⲛⲧⲟϥ
-ⲛⲧⲟⲥ ⲁⲛⲟⲛ ⲛⲧⲱⲧⲛ ⲛⲧⲟⲟⲩ ⲡⲁⲓ ⲫⲁⲓ ⲫⲏ. quiz: {band: intermediate, pos: V}.
+ⲛⲧⲟⲥ ⲁⲛⲟⲛ ⲛⲧⲱⲧⲛ ⲛⲧⲟⲟⲩ ⲡⲁⲓ ⲫⲁⲓ ⲛⲁⲓ. quiz: {band: intermediate, pos: V}.
 drill: {work: bohairic_mark, verse_min: 70, verse_max: 129}. corpus:
 {work: bohairic_mark, verse_start: 8, verse_end: 11}. checkpoint: quiz ≥ 70%.
 

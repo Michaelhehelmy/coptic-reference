@@ -647,3 +647,21 @@ publish(es)
 Before writing a warning into a build, answer one question: **if this input were
 missing in production, would a reader notice?** If yes, it is a failure. If the
 answer is genuinely no, a warning is fine — and say in the warning why not.
+
+
+## Rule 14 — content claims are verified like code claims
+
+A claim in content is verified the same way a claim in code is. If a lesson
+says ⲭⲱ means 'say', that claim is checked against the dictionary the same
+way a function's return value is checked against a test. Authoring without
+verification is the same as coding without tests.
+
+Concretely: every `TOKEN (gloss)` pair you write in a lesson is checked by
+`tools/validate/lesson_vocab_guard.py` — the token must resolve to a
+dictionary entry, and every gloss segment must appear in that entry's
+glosses. Gloss parens carry machine-readable segments only; discussion goes
+outside them. Tokens without headwords (ⲡⲉϫⲉ, ⲁⲛ) are declared in front
+matter `unlisted_forms` with a reason, never silently unresolvable. And
+grammar assertions — anything about how the language works, as opposed to
+what a word means — go in `content/GRAMMAR_CLAIMS.md` for a reviewer, with
+the lesson marked `grammar_claims_verified: false` until then.

@@ -16,11 +16,12 @@ lemma, and function tags as the annotators left them. No new data.
   cloze distractors), ordered by frequency closeness.
 
 SKIPS (counted per reason, never hidden): tokens without lemma/POS;
-punctuation (a part of speech for "." teaches nothing); a surface form
-whose reading is ambiguous in its own verse (same form, different POS or
-lemma beside it); fewer than three valid distractors. At most one POS item
-and one lemma item per verse (first viable token each), so banks stay
-comparable to the cloze banks.
+punctuation (a part of speech for "." teaches nothing); trivial identity
+(Session 21 D3: token.form == token.lemma after normalization — answerable
+by shape matching, e.g. ⲁ→ⲁ); a surface form whose reading is ambiguous in
+its own verse (same form, different POS or lemma beside it); fewer than
+three valid distractors. At most one POS item and one lemma item per verse
+(rotated among viable slots), keeping banks comparable (~2.6k × 2).
 
 Frequency bands reuse quizgen's 300/1,000 rank thresholds on lemma totals
 across all six works. Determinism throughout; gzip mtime=0.
@@ -48,6 +49,18 @@ sys.path.insert(0, str(HERE))
 import safeio  # noqa: E402
 from drillgen import difficulty  # noqa: E402  (one band vocabulary)
 from quizgen import choice_key, place_choices  # noqa: E402  (one shuffle)
+import unicodedata  # noqa: E402
+
+
+def _same(form: str, lemma: str) -> bool:
+    """Session 21 D3: a token identical to its lemma asks nothing.
+
+    ⲁ→ⲁ is answerable by shape matching — no Coptic required. Normalized
+    (NFC, strip, casefold) so coincidental case/markup differences do not
+    smuggle trivial items through.
+    """
+    clean = lambda text: unicodedata.normalize("NFC", text.strip().casefold())
+    return bool(form) and clean(form) == clean(lemma)
 
 TARBALL = ROOT / "data" / "dist" / "corpus" / "corpus.tar.gz"
 DRILL_DIR = ROOT / "data" / "dist" / "drill"
@@ -110,7 +123,8 @@ def build_pos_items(slug: str, tokens: list[dict], totals: dict[str, int],
         band = difficulty(ranks.get(lemma, 10 ** 9))
         tag_bands.setdefault(pos, band)
     items: list[dict] = []
-    skipped = {"no_token": 0, "ambiguous": 0, "few_distractors": 0}
+    skipped = {"no_token": 0, "ambiguous": 0, "few_distractors": 0,
+                   "trivial": 0}
     for verse_index in sorted(by_verse):
         verse = sorted(by_verse[verse_index], key=lambda tok: tok["i"])
         if not verse:
@@ -124,6 +138,9 @@ def build_pos_items(slug: str, tokens: list[dict], totals: dict[str, int],
             pos, lemma, form = (tok.get("pos") or "", tok.get("lemma") or "",
                                 tok.get("form") or "")
             if not pos or not lemma or not form or pos == "PUNCT":
+                continue
+            if _same(form, lemma):
+                skipped["trivial"] += 1
                 continue
             readings = {(t.get("pos") or "") for t in verse
                         if (t.get("form") or "") == form}
@@ -174,7 +191,8 @@ def build_lemma_items(slug: str, tokens: list[dict], totals: dict[str, int],
     for tok in tokens:
         by_verse.setdefault(tok["verse_index"], []).append(tok)
     items: list[dict] = []
-    skipped = {"no_token": 0, "ambiguous": 0, "few_distractors": 0}
+    skipped = {"no_token": 0, "ambiguous": 0, "few_distractors": 0,
+                   "trivial": 0}
     for verse_index in sorted(by_verse):
         verse = sorted(by_verse[verse_index], key=lambda tok: tok["i"])
         if not verse:
@@ -187,6 +205,9 @@ def build_lemma_items(slug: str, tokens: list[dict], totals: dict[str, int],
             pos, lemma, form = (tok.get("pos") or "", tok.get("lemma") or "",
                                 tok.get("form") or "")
             if not pos or not lemma or not form or pos == "PUNCT":
+                continue
+            if _same(form, lemma):
+                skipped["trivial"] += 1
                 continue
             readings = {(t.get("lemma") or "") for t in verse
                         if (t.get("form") or "") == form}

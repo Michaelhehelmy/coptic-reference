@@ -662,6 +662,18 @@ deploy verifies signatures. `GIT_SIGN_COMMITS` may be enabled in a
 contributor's environment; commits made here will then report a signing
 failure and land unsigned, which is the expected state. See SHIP.md.
 
+**Rule 14. A claim in content is verified the same way a claim in code is.
+If a lesson says ⲭⲱ means 'say', that claim is checked against the
+dictionary the same way a function's return value is checked against a
+test. Authoring without verification is the same as coding without tests.**
+
+Session 21 is the evidence. The lesson audit found taught glosses the
+dictionary does not contain (ⲭⲱ as "say" — it means "put, place"; ϭⲟⲓⲗⲉ
+as "worm" — it means "dwell"), each written from memory and each wrong.
+`lesson_vocab_guard.py` now checks every taught pair the way the test suite
+checks every return value, and `content/GRAMMAR_CLAIMS.md` holds every
+grammar assertion pending a reviewer's verdict.
+
 ## 9. Emergency procedures
 
 Full commands and rollback plans: **`RUNBOOK.md`**. In short:

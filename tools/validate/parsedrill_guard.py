@@ -8,7 +8,9 @@ resolved against the corpus tarball (never the bank alone):
 - a POS item's correct choice is the token's annotated POS;
 - a lemma item's correct choice is the token's annotated lemma;
 - no distractor equals the correct answer after normalization;
-- exactly four unique choices (after normalization).
+- exactly four unique choices (after normalization);
+- Session 21 D3: the token's form differs from its lemma after
+  normalization (trivial identity items must never ship).
 
 Reads banks through safeio (Rule 12); the tarball is single-form.
 
@@ -30,6 +32,7 @@ import safeio  # noqa: E402
 
 DRILL_DIR = ROOT / "data" / "dist" / "drill"
 TARBALL = ROOT / "data" / "dist" / "corpus" / "corpus.tar.gz"
+LABELS = DRILL_DIR / "pos_labels.json.gz"
 
 
 class ParseDrillGuardError(SystemExit):
@@ -97,8 +100,12 @@ def check_item(item: dict, verses: dict[str, dict[int, list[dict]]],
         errors.append(f"{prefix}: token_index is outside the verse")
         return
     token = verse[position]
-    expected = (token.get("pos") or "") if drill_type == "pos" \
-        else (token.get("lemma") or "")
+    form, lemma = (token.get("form") or ""), (token.get("lemma") or "")
+    if normalized(form) == normalized(lemma):
+        errors.append(f"{prefix}: trivial — form equals lemma "
+                      f"({form!r}); answerable by shape matching")
+        return
+    expected = (token.get("pos") or "") if drill_type == "pos" else lemma
     if not expected:
         errors.append(f"{prefix}: annotated token has no {drill_type}")
         return
@@ -121,6 +128,20 @@ def check_item(item: dict, verses: dict[str, dict[int, list[dict]]],
         errors.append(f"{prefix}: bank tokens do not match the verse")
 
 
+def read_labels(path: pathlib.Path = LABELS) -> dict[str, str]:
+    """The tag->label map. Missing file is a failure, not a fallback."""
+    try:
+        raw = safeio.read_maybe_gzip(path)
+    except OSError as e:
+        raise ParseDrillGuardError(
+            f"[parsedrill_guard] {path} unreadable ({e})") from e
+    try:
+        return json.loads(raw.decode("utf-8")).get("labels", {})
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise ParseDrillGuardError(
+            f"[parsedrill_guard] {path} is not JSON ({e})") from e
+
+
 def check(drill_dir: pathlib.Path = DRILL_DIR,
           tarball: pathlib.Path = TARBALL) -> tuple[int, list[str]]:
     """Returns (item count, errors). Empty errors means clean."""
@@ -128,13 +149,37 @@ def check(drill_dir: pathlib.Path = DRILL_DIR,
     if not banks:
         raise ParseDrillGuardError(f"[parsedrill_guard] no banks in {drill_dir}")
     verses = read_verses(tarball)
+    labels = read_labels(drill_dir / "pos_labels.json.gz")
+    if not isinstance(labels, dict):
+        raise ParseDrillGuardError("[parsedrill_guard] labels file has no map")
     errors: list[str] = []
+    for tag, label in labels.items():
+        if not isinstance(label, str) or not label:
+            errors.append(f"labels: {tag!r} has no string label")
+        elif label == tag:
+            errors.append(f"labels: {tag!r} equals its tag")
+    errors.extend(check_labels_cover_banks(banks, labels))
     count = 0
     for bank in banks:
         for item in read_bank(bank).get("items", []):
             count += 1
             check_item(item, verses, bank.name, errors)
     return count, errors
+
+
+def check_labels_cover_banks(banks: list[pathlib.Path],
+                             labels: dict[str, str]) -> list[str]:
+    """Session 21 D2: every POS tag in a parse bank has a label to render."""
+    tags: set[str] = set()
+    for bank in banks:
+        for item in read_bank(bank).get("items", []):
+            if not isinstance(item, dict) or item.get("drill_type") != "pos":
+                continue
+            for choice in item.get("choices", []) or []:
+                if isinstance(choice, str) and choice:
+                    tags.add(choice)
+    return [f"labels: bank tag {tag!r} has no label" for tag in sorted(tags)
+            if tag not in labels]
 
 
 def main(argv: list[str] | None = None) -> int:
