@@ -142,7 +142,9 @@ def main(argv: list[str] | None = None) -> int:
         errors.append("no .html files at all — the site has no pages")
     if not (pub / "index.html").is_file():
         errors.append("index.html is missing — the root route")
-    for route in ("dict", "dialects", "licences"):
+    # Session 18 D4: the learning pages are required routes too — a drill
+    # page that 404s is a shipped bug, not a missing feature.
+    for route in ("dict", "dialects", "licences", "quiz", "drill"):
         if not (pub / route / "index.html").is_file():
             errors.append(f"{route}/index.html is missing — a linked route 404s")
     if not (pub / "sitemap.xml").is_file():

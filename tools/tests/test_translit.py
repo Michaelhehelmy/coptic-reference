@@ -198,6 +198,57 @@ def test_d1_strict_raises_naming_the_character():
     assert translit.transliterate_all_strict("ⲧⲉⲛⲟⲩ")["sahidic"] == "tenou"
 
 
+def _empty_by_rule_fixture() -> list[str]:
+    path = ROOT / "tools" / "tests" / "fixtures" / "translit_empty_by_rule.txt"
+    lemmas: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        lemma = line.split("#", 1)[0].strip()
+        if lemma:
+            lemmas.append(lemma)
+    return lemmas
+
+
+def test_d2_empty_egyptological_matches_the_fixture():
+    """Session 18 D2: the 8 vowel-only lemmas empty ONLY egyptological."""
+    lemmas = _empty_by_rule_fixture()
+    assert len(lemmas) == 8, f"fixture changed size: {len(lemmas)}"
+    for lemma in lemmas:
+        all_schemes = translit.transliterate_all(lemma)
+        assert all_schemes["egyptological"] == "", lemma
+        for scheme in ("bohairic", "sahidic", "layton", "till"):
+            assert all_schemes[scheme] != "", f"{lemma} {scheme}"
+
+
+def test_d2_no_other_shard_entry_has_an_empty_scheme():
+    """The fixture is exhaustive: any other empty value fails the build."""
+    import gzip as _gzip
+    import json as _json
+
+    allowed = set(_empty_by_rule_fixture())
+    quiz_dir = ROOT / "data" / "dist" / "dict"
+    shards = sorted(quiz_dir.glob("shard-*.json")) + \
+        sorted(quiz_dir.glob("shard-*.json.gz"))
+    if not shards:
+        pytest.skip("no baked shards")
+    offenders: list[str] = []
+    checked = 0
+    for shard in shards:
+        if shard.suffix == ".gz":
+            blob = _json.loads(_gzip.decompress(
+                shard.read_bytes()).decode("utf-8"))
+        else:
+            blob = _json.loads(shard.read_text(encoding="utf-8"))
+        for entry in blob.get("entries", []):
+            checked += 1
+            translit_obj = entry.get("translit") or {}
+            for scheme, value in translit_obj.items():
+                if not value and entry.get("lemma") not in allowed:
+                    offenders.append(
+                        f"{entry.get('id')} {entry.get('lemma')!r} {scheme}")
+    assert checked > 0
+    assert not offenders, f"empty outside fixture: {offenders[:10]}"
+
+
 def test_d1_merge_error_names_entry_id_and_character():
     # C3 end to end: merge_group raises MergeError naming id + character.
     rec = {

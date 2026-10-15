@@ -229,6 +229,35 @@ def main(argv: list[str] | None = None) -> int:
                         "source": f"data/dist/quiz/{name}",
                         "bytes": dest.stat().st_size})
 
+    # 3e ── the cloze drill banks (Session 18 D4).
+    #
+    # Same order as the quiz: emit, validate, then publish. drillgen reads
+    # the authoritative corpus tarball, never the public/ tree.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "drillgen.py")],
+                what="drillgen")
+    if rc != 0:
+        return rc
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "drill_guard.py")],
+                what="drill_guard")
+    if rc != 0:
+        print("[build] drill guard failed — refusing to publish", file=sys.stderr)
+        return rc
+    drill_src = ROOT / "data" / "dist" / "drill"
+    drill_dest = PUBLIC / "data" / "drill"
+    if not drill_src.is_dir():
+        print("[build] FAIL — data/dist/drill is absent after drillgen; refusing to "
+              "publish a drill page with no drills.", file=sys.stderr)
+        return 1
+    for name in sorted(p.name for p in drill_src.iterdir() if p.is_file()):
+        src = drill_src / name
+        dest = drill_dest / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        safeio.write_verified(dest, src.read_bytes())
+        claimed.add(dest.relative_to(PUBLIC).as_posix())
+        emitted.append({"path": dest.relative_to(PUBLIC).as_posix(),
+                        "source": f"data/dist/drill/{name}",
+                        "bytes": dest.stat().st_size})
+
     # 4 ── the vault download
     rc, _ = run([sys.executable, "tools/emit/obsidian.py"], what="obsidian")
     if rc != 0:

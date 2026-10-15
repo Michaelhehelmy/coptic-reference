@@ -304,9 +304,11 @@ def run(inject_kind: str, real: bool = False, dist: pathlib.Path | None = None) 
             kept = [ln for ln in text.split("\n") if not ln.startswith("CDO-API,")]
             safeio.write_text_verified(manifest, "\n".join(kept))
             print("[2] injected   dropped the CDO-API row from the temp manifest")
-        (dist / "dict" / "shard-a1.json").write_text(
-            json.dumps({"shard": "a1", "entries": entries},
-                       indent=2, ensure_ascii=False), encoding="utf-8")
+        # Session 18 D0 (Rule 12): even a hermetic harness writes shards
+        # through the one shard writer, so the bytes under test match the
+        # bytes the pipeline ships.
+        shardio.write_shard(dist / "dict" / "shard-a1.json",
+                              {"shard": "a1", "entries": entries})
         print(f"[2] wrote      {dist.relative_to(work)}/dict/shard-a1.json "
               f"(temporary — data/dist untouched)")
 

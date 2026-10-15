@@ -1,0 +1,58 @@
+{{ define "main" }}
+<h1>Drills</h1>
+{{ .Content }}
+
+<noscript id="drill-noscript">
+  <h2>Corpus drills</h2>
+  <p><strong>The interactive drills need JavaScript.</strong> The verses live
+  in static, downloadable banks under <code>/data/drill/</code>; the browser
+  is only the presenter. With scripting off, no drill below can start.</p>
+  <ul>
+    <li>Bohairic 1 Corinthians — fill the gap, verse by verse</li>
+    <li>Bohairic Mark — fill the gap, verse by verse</li>
+    <li>Lausiac History — fill the gap, verse by verse</li>
+    <li>Life of Isaac — fill the gap, verse by verse</li>
+    <li>Martyrdom of Victor — fill the gap, verse by verse</li>
+    <li>Sahidic Ruth — fill the gap, verse by verse</li>
+  </ul>
+  <p class="note">Every blank covers a content word; articles, prepositions,
+  and bound forms stay visible. Distractors share the part of speech and the
+  frequency band of the missing word.</p>
+</noscript>
+
+<form id="drill-controls" aria-label="Drill options">
+  <p>
+    <label for="drill-work">Corpus work</label>
+    <select id="drill-work" autocomplete="off">
+      <option value="bohairic_1corinthians">Bohairic 1 Corinthians</option>
+      <option value="bohairic_mark">Bohairic Mark</option>
+      <option value="lausiac_history">Lausiac History</option>
+      <option value="life_of_isaac">Life of Isaac</option>
+      <option value="martyrdom_of_victor">Martyrdom of Victor</option>
+      <option value="sahidic_ruth">Sahidic Ruth</option>
+    </select>
+  </p>
+  <p><button id="drill-start" type="button">Start ten drills</button></p>
+</form>
+
+<p id="drill-status" class="note" role="status">Choose a work, then start.</p>
+<div id="drill-app" aria-live="polite">
+  <p id="drill-score" class="count">No drills answered yet on this browser.</p>
+  <h2 id="drill-prompt"></h2>
+  <p id="drill-progress" class="note"></p>
+  <ul id="drill-choices" class="hits"></ul>
+  <p id="drill-feedback" class="note"></p>
+</div>
+
+<h2>Your progress</h2>
+<p class="note">Scores live in this browser's local storage. Nothing is sent
+anywhere.</p>
+<p>
+  <button id="drill-reset" type="button">Clear progress on this browser</button>
+</p>
+
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, and drill.js
+     calls it. Same discipline as the quiz page. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/drill.js" | relURL }}" defer></script>
+{{ end }}

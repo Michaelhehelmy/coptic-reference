@@ -557,6 +557,38 @@ directly, while the Obsidian emitter read its keys one by one. Only the second
 could be right, and only by accident.
 
 
+## Rule 12 — every file format has exactly one reader and one writer
+
+Every file format in the pipeline has exactly one reader and one writer. No
+call site opens a file directly. A file that exists in multiple on-disk forms
+has exactly one reader that resolves all forms.
+
+In practice: shard reads/writes go through `tools/shardio.py`, every other
+dual-form artefact (`index.json`, `LICENSES.csv`, `records.csv`, quiz banks)
+through `tools/safeio.py` (`resolve_readable` / `read_maybe_gzip` /
+`write_verified`), and every browser fetch of `data/` through
+`static/js/fetch_json.js` (`FetchJson.json`). `tools/validate/reader_usage_guard.py`
+fails the build on any other way to open the same bytes.
+
+```python
+# Wrong: resolves the form, then ignores the resolution (Session 17 crash).
+prior = safeio.resolve_readable(old_csv)   # may be LICENSES.csv.gz ...
+with prior.open(encoding="utf-8") as fh:   # ... opened as text. Boom.
+    ...
+
+# Right: the resolving reader owns both forms.
+text = safeio.read_maybe_gzip(prior_csv).decode("utf-8")
+```
+
+Session 17 is the evidence: the emit crashed on gzip magic (`0x8b`) because
+one call site hardcoded the plain form of a file that ships gzipped — the
+mirror image of Session 5 writing plain JSON into files named `.json.gz`.
+Single-form inputs (`sources/*`, `schema/*`, `tools/shipped.toml`) and test
+fixtures under `tools/tests/` (which own `tmp_path` per Rule 6) are outside
+the guard's scope; `tools/parse/*` and `tools/fetch/*` are the designated
+ingest readers. See `COVERAGE.md` for what the guard would pass silently.
+
+
 ## A missing required input is a build failure, never a warning
 
 Session 14 shipped a build that printed

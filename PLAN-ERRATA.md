@@ -431,3 +431,30 @@ The shipped `translit` schemes remain empty, but 2,799 Kaikki-derived
 `forms.romanization` values exist. Quiz transliteration prompts use those values
 through the one renderer and label them as romanizations. Calling one of them
 “Bohairic” would have invented a scheme the source does not assert.
+
+---
+
+## Session 18 errata
+
+### E30 — a guard that scans nothing passes (parents[1] vs parents[2])
+
+`reader_usage_guard.py` first shipped with `ROOT = parents[1]` (the `tools/`
+directory) instead of `parents[2]` (the repo root). It scanned `tools/tools/`
+and `tools/static/js`, found nothing, and printed OK. A guard that checks
+nothing is worse than no guard — the exact failure mode COVERAGE.md exists to
+prevent. Caught because the run was suspiciously clean: three flags were
+expected from the pre-run survey and zero appeared. Fixed to `parents[2]`;
+the guard immediately failed with the three real flags. Lesson restated: a
+new guard's first run must produce its expected findings before it is
+believed, same as Rule 10's probe calibration.
+
+### E31 — the split-line read the grep guard cannot see
+
+`dict_index.py:135` read `index.json` through `hdr_path`, assigned two lines
+above. The line-based guard cannot match a verb and a path on different
+lines, so this one was found by reading the survey output, not by the guard,
+and fixed the same way (via `safeio.read_maybe_gzip`). Recorded as a stated
+limitation in the guard's docstring and in COVERAGE.md rather than fixed by
+making the guard track variables — a variable-tracking linter is a project
+of its own, and an honest limitation beats a clever heuristic nobody can
+audit.

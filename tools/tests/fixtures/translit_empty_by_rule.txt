@@ -1,0 +1,17 @@
+# tools/tests/fixtures/translit_empty_by_rule.txt — Session 18 D2.
+#
+# Lemmas whose EGYPTOLOGICAL transliteration is the empty string BY RULE.
+# The Egyptological scheme (translit.py U5) strips Greek vowels (a e ē o ō)
+# and keeps only consonants; a vowel-only lemma therefore has no consonantal
+# skeleton. That is the scheme working, not the feature missing: the other
+# four schemes are non-empty for every line here, and no other shard entry
+# may hold an empty value in any scheme (enforced by test_translit.py).
+# One lemma per line; the comment names why the skeleton is empty.
+ⲁ # sole vowel a -> stripped, nothing remains
+ⲉ̅ # e + overline (numeral/grammatical mark, R4-stripped) -> empty
+ⲉⲱ # e + ō -> both stripped
+ⲏ︦ # ē + combining mark (R4-stripped) -> empty
+ⲟ̄ # o + macron (R4-stripped) -> empty
+ⲱ # ō -> stripped
+ⲱⲉ # ō + e -> both stripped
+ⲱⲱ # ō + ō -> both stripped

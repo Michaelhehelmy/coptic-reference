@@ -479,6 +479,24 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 18 status
+
+**The site teaches grammar-in-context, and every pipeline file has one reader.**
+
+- `/drill/` offers cloze drills from real corpus verses: one content token
+  removed per verse (articles, prepositions, punctuation, and bound forms stay
+  visible), four attested surface forms to choose from, 2,599 items in 6
+  per-work banks, browser-local scoring, and a static no-JS work list.
+  `drill_guard.py` re-reads every answer from the tarball; unfair items fail
+  the build.
+- **Rule 12**: every file format has exactly one reader and one writer —
+  shards through `shardio`, dual-form artefacts through `safeio`, browser
+  fetches through `fetch_json.js` — enforced by `reader_usage_guard.py`.
+- The 8 vowel-only lemmas whose Egyptological skeleton is empty by rule live
+  in `tools/tests/fixtures/translit_empty_by_rule.txt`, checked both
+  directions; the `static/js/translit.js` orphan diff was proven
+  behavior-identical across 240 inputs and reverted.
+
 ## Session 16 status
 
 **The learning layer now has one transliteration renderer and data-derived quizzes.**

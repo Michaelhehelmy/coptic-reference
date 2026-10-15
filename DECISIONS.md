@@ -2650,3 +2650,67 @@ no published rule maps Coptic ⲧⲉⲛⲟⲩ->tnw; sources to check are Schenke
 *Tübinger Einführung*, Allen's *Middle Egyptian*, or Grossman–Haspelmath–
 Richter 2015 (Leipzig–Jerusalem) § on consonantal mapping. Until one is
 verified in hand, both stay UNVERIFIED and applied.
+
+---
+
+## Session 18 — loose ends, drills, push
+
+### D1: the translit.js orphan was reverted, not committed
+
+`static/js/translit.js` carried an uncommitted diff since before Session 17:
+a comment-line reflow, a flattened `if` in `firstRomanization`, the
+`romanization` early-return hoisted above the fallback setup, and one
+reworded comment ("no second reader of the schema field" -> "no second
+copy"). No provenance, no commit, no note — a floating edit on the one file
+Rule 11 protects most. A Node harness loaded the HEAD and working-tree
+versions and compared all outputs across 240 input combinations (12 translit
+shapes x 4 form lists x 10 schemes incl. garbage): **0 differences**. With
+behavioral identity proven, the revert is strictly safer than blessing an
+unauthored edit, so Option B: `git checkout -- static/js/translit.js`, tree
+clean. If the reflow ever returns, it returns as a reviewed commit.
+
+### D2: "none empty" revised to "none empty except by rule, listed in the fixture"
+
+Session 17's receipt required "no entry's translit value is empty" and then
+reported 8 exceptions narratively — a requirement with exceptions in prose is
+a requirement nobody can check. Session 18 moves the 8 vowel-only lemmas
+(ⲁ ⲉ̅ ⲉⲱ ⲏ︦ ⲟ̄ ⲱ ⲱⲉ ⲱⲱ) into
+`tools/tests/fixtures/translit_empty_by_rule.txt`, one lemma per line with
+the per-line reason (U5 strips Greek vowels, so a vowel-only lemma has no
+consonantal skeleton). The revised requirement: **no empty value in any
+scheme except egyptological for a fixture-listed lemma**. `test_translit.py`
+asserts both directions — fixture lemmas empty exactly egyptological, and no
+other shard entry empty anywhere — so a ninth case fails the build instead of
+becoming a tenth line of narrative.
+
+### D0: Rule 12, three flags, and one the guard cannot see
+
+Rule 12 ("every file format has exactly one reader and one writer") is now
+verbatim in HANDOFF.md §8a and CONTRIBUTING.md, with the Session 17 emit
+crash as evidence. `reader_usage_guard.py` greps pipeline code for direct
+opens of bare-form artefacts; JS data fetches must go through FetchJson
+(already true everywhere). First run: 3 flags. `cli.py:127` (index.json
+write) and `:136` (records.csv open) were real — both now go through safeio.
+`dry_run.py:307` wrote a shard-shaped fixture into its own tmp dir; routed
+through `shardio.write_shard` so the harness tests the bytes the pipeline
+ships. A fourth case, `dict_index.py:135` reading index.json through a
+variable two lines from its path, is invisible to a line-based guard; found
+by survey, fixed via `read_maybe_gzip`, and recorded as a stated limitation
+(see E30/E31). Negative controls (planted `.open()` + raw `fetch()`) fail
+naming the file; mediated access passes.
+
+### D4: drill design decisions, stated for the linguist who reviews them
+
+One cloze item per verse that admits a fair blank (2,599 of 2,601 verses;
+skips counted per reason, not hidden). "Bound marker" is interpreted as fused
+bound morphology (tags containing `_PPERO`/`_PPERS`) plus ART/PREP/PUNCT kept
+visible — PUNCT because a blanked full stop has no lexical answer. Same-POS +
+same frequency band (quiz 300/1,000 thresholds) + closest-frequency-first
+distractors, each the lemma's most frequent attested surface form: nothing
+synthesized. "Grammatically acceptable distractor" is proxied conservatively
+(a candidate occurring elsewhere in the same verse is rejected); the proxy
+may skip fair items but never ships a probably-acceptable one. Choices reuse
+quizgen's seeded shuffle (one implementation). The UI mirrors quiz.js
+(fetch/render/localStorage; answer links to `/dict/?q=`); the no-JS fallback
+lists the six works. `/drill/` is now a required route in
+`public_completeness_guard.py`, alongside `/quiz/`.

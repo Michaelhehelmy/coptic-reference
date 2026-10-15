@@ -31,6 +31,8 @@ answer to that, and it should be updated whenever a guard is added or changed.
 | `fetch/fetch_all.py --check` | every pinned source file present locally matches the SHA-256 and byte count in `tools/sources.lock` | a source changing under a pin; a truncated download | **A pinned source DELETED.** Proved: moved `sources/kaikki/` away; it reclassified it as 'declared without a local copy' and still printed `all sources verified`, exit 0. A removal is silently a demotion. | **NONE - gap (G5)** for the demotion case. Closed in Session 5 by requiring a byte-verified local copy for any source the lock says must be present. |
 | `pytest tools/tests/` | contracts, parsers, schemas, and the guards themselves, including the 12-check corpus round trip | contract regressions in code the other guards only exercise | **The shipped dataset, where the tests only assert on fixtures.** `test_merge_emit.py` read `index.json`'s `collation_hash` from a *tmp* emit, never from the shipped file. | **SHARED GAP** with `collation_guard` - the suite and the guard together still missed a corrupted shipped `index.json` (G3). Closed by `index_pin_guard.py`. |
 | `emit/obsidian.py` (+ `test_obsidian.py`) | the vault payload respects the size limits and keeps text as text | a vault that would not fit Obsidian; text reflowed into a paragraph | **A vault that was never built** - the test asserts limits on a generated fixture, not on `public/downloads`. | **SHARED GAP** - `nc_guard_public` scans the built archive, but with `public/downloads/` absent it cannot tell 'not built' from 'built and empty'. |
+| `reader_usage_guard.py` | every direct file-access call in `tools/**/*.py` and `static/js/*.js` naming a bare-form pipeline artefact without safeio/shardio/FetchJson mediation | a second way to open the same bytes (Session 17 emit crash on `.csv.gz` opened as text; S5-B2 plain JSON in `.json.gz` names) | **A path assigned on one line and opened several lines later** (verb and path must share a line). Proved in-session: `dict_index.py:135` read `index.json` through a variable and was found by survey, not by the guard; fixed the same way. Also explicit-form literals (`.json.gz` written out) and single-form inputs, by design. | `test_guards.py` Rule-12 negatives (planted direct open + raw fetch fail naming the file). |
+| `drill_guard.py` | all 2,599 cloze items against the corpus tarball: correct == removed token, unique (lemma, pos) in verse, no normalized-equal distractor, verse resolves | an unfair or untraceable drill item; a bank whose tokens drifted from its verse | **A missing drill dir** - raises instead of passing (fail-closed, unlike the SKIP guards above). A verse whose tokens changed without rebuilding the bank: caught, because tokens are compared, not trusted. | `tools/tests/test_drill.py` (one negative per category on crafted tmp banks) + Playwright `test_drill.py` (plays one item, asserts score; no-JS fallback renders). |
 
 ## Gaps found
 
@@ -458,3 +460,20 @@ the difference because every test server so far has served `.gz` undecoded.
   scheme data.
 - **A production deployment of `/quiz/`.** Verified locally and in Chromium; the
   production promotion decision remains Michael's.
+
+---
+
+## Session 18 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | Rule 12 in HANDOFF §8a + CONTRIBUTING | **DONE** | verbatim from C1; evidence Session 17 emit crash + S5-B2 |
+| D0 | `reader_usage_guard.py` | **DONE** | clean; 3 flags triaged+fixed (cli.py x2, dry_run), dict_index by survey; 4 control tests |
+| D1 | translit.js orphan | **DONE** | reverted; 240-combination behavioral identity proven first |
+| D2 | empty-by-rule fixture | **DONE** | 8 lemmas versioned; both-direction test passes |
+| D3 | quiz regen confirmation | **DONE** | identical sha, 50/50/50, quiz_guard clean |
+| D4 | `drillgen.py` | **DONE** | 2,599 items in 6 banks, skips counted per reason |
+| D4 | `drill_guard.py` | **DONE** | clean; 4 negatives (one per category) fail |
+| D4 | `/drill/` + drill.js + no-JS fallback | **DONE** | Playwright: one item completes and scores; fallback lists works |
+| D5 | all guards + pytest + Playwright | **DONE** | every guard OK; 336 + 48 passed |
+| D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md, README.md, HANDOFF.md, SHIP.md |

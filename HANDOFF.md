@@ -631,6 +631,19 @@ time. One of the two could not be right: the reader printed
 `[object Object]` for any nonempty transliteration. `static/js/translit.js`
 now owns the field, and all renderers call `translitDisplay()`.
 
+**Rule 12. Every file format in the pipeline has exactly one reader and one
+writer. No call site opens a file directly. A file that exists in multiple
+on-disk forms has exactly one reader that resolves all forms.**
+
+Session 17 is the evidence, twice over. First the S5-B2 class: plain JSON
+written into files named `.json.gz`. Then its mirror image in Session 17:
+`tools/emit/cli.py` resolved the prior LICENSES manifest (possibly `.csv.gz`)
+and opened the result as text, crashing the emit on gzip magic — resolving
+the form and then ignoring the resolution. `tools/validate/reader_usage_guard.py`
+enforces the rule: shard reads/writes go through `shardio`, everything else
+dual-form through `safeio`, browser fetches through `fetch_json.js`. A second
+way to open the same bytes is how one of the two becomes wrong.
+
 ## 9. Emergency procedures
 
 Full commands and rollback plans: **`RUNBOOK.md`**. In short:

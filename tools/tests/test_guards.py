@@ -459,3 +459,51 @@ def test_dry_run_never_writes_to_the_real_data_dist():
     after = sorted(p.relative_to(ROOT).as_posix()
                    for p in (ROOT / "data" / "dist").rglob("*") if p.is_file())
     assert before == after
+
+
+# ── Rule 12: one reader, one writer (Session 18 D0) ──────────────────────────
+
+def _rug():
+    sys.path.insert(0, str(ROOT / "tools" / "validate"))
+    import reader_usage_guard as rug
+    return rug
+
+
+def test_reader_usage_guard_fails_on_a_direct_open_naming_the_file(tmp_path):
+    """Negative control: a planted direct open() must fail naming the file."""
+    rug = _rug()
+    planted = tmp_path / "violator.py"
+    planted.write_text(
+        'import json\n'
+        'blob = json.loads((d / "dict" / "index.json").read_text())\n',
+        encoding="utf-8")
+    hits = rug.check_python_file(planted)
+    assert len(hits) == 1, f"expected exactly one hit, got {hits}"
+    assert "violator.py" in hits[0] and "index.json" in hits[0]
+
+
+def test_reader_usage_guard_passes_mediated_access(tmp_path):
+    """Positive control: the guard must not fire on its own discipline."""
+    rug = _rug()
+    clean = tmp_path / "clean.py"
+    clean.write_text(
+        'blob = shardio.read_shard(d / "dict" / "shard-000.json.gz")\n'
+        'safeio.write_verified(d / "dict" / "index.json", raw)\n',
+        encoding="utf-8")
+    assert rug.check_python_file(clean) == []
+
+
+def test_reader_usage_guard_fails_on_raw_fetch(tmp_path):
+    """Negative control (JS half): a raw fetch() of data must fail."""
+    rug = _rug()
+    planted = tmp_path / "reader.js"
+    planted.write_text('const r = await fetch("data/quiz/bank.json");\n',
+                       encoding="utf-8")
+    hits = rug.check_js_file(planted)
+    assert len(hits) == 1 and "reader.js" in hits[0]
+
+
+def test_reader_usage_guard_is_clean_on_the_real_tree():
+    """The shipped tree holds no direct opens of pipeline artefacts."""
+    rug = _rug()
+    assert rug.check() == []

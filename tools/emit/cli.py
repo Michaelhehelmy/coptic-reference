@@ -124,8 +124,11 @@ def emit(entries: list[dict], dist: pathlib.Path, *,
         ],
         "ids": [e["id"] for e in ordered],
     }
-    (dict_dir / "index.json").write_text(
-        json.dumps(index, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    # Session 18 D0 (Rule 12): index.json has a .gz sibling, so this write
+    # goes through safeio like every other dual-form artefact.
+    safeio.write_text_verified(
+        dict_dir / "index.json",
+        json.dumps(index, ensure_ascii=False, indent=1) + "\n")
 
     # ── records.csv (v4 §6.2): one row per (entry, source) ────────────────────
     cols = ["record_id", "lemma", "norm_key", "pos", "dialects", "source_id",
@@ -133,22 +136,26 @@ def emit(entries: list[dict], dist: pathlib.Path, *,
             "example_count", "corpus_ref_count", "form_count",
             "pipeline_version", "generated"]
     rows = 0
-    with (prov_dir / "records.csv").open("w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh, lineterminator="\n")
-        w.writerow(cols)
-        for e in ordered:
-            rid_map = (e.get("provenance") or {}).get("record_ids") or {}
-            for s in e["sources"]:
-                w.writerow([
-                    e["id"], e["lemma"], e["norm_key"],
-                    ";".join(e["pos"]), ";".join(e["dialects"]),
-                    s["id"], rid_map.get(s["id"], ""), s.get("licence", ""),
-                    s.get("doi", ""), "",          # quality: source does not assert
-                    len(e["glosses"]), len(e["examples"]),
-                    len(e.get("corpus_refs") or []), len(e["forms"]),
-                    pipeline_version, GENERATED,
-                ])
-                rows += 1
+    # Session 18 D0 (Rule 12): records.csv ships as records.csv.gz too, so the
+    # write goes through safeio. Rendered to a string first (same pattern as
+    # _render_licences below), then verified — no bare open() on the artefact.
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf, lineterminator="\n")
+    w.writerow(cols)
+    for e in ordered:
+        rid_map = (e.get("provenance") or {}).get("record_ids") or {}
+        for s in e["sources"]:
+            w.writerow([
+                e["id"], e["lemma"], e["norm_key"],
+                ";".join(e["pos"]), ";".join(e["dialects"]),
+                s["id"], rid_map.get(s["id"], ""), s.get("licence", ""),
+                s.get("doi", ""), "",          # quality: source does not assert
+                len(e["glosses"]), len(e["examples"]),
+                len(e.get("corpus_refs") or []), len(e["forms"]),
+                pipeline_version, GENERATED,
+            ])
+            rows += 1
+    safeio.write_text_verified(prov_dir / "records.csv", buf.getvalue())
     record_rows = rows          # Session 5 S5-B4: `rows` was reused below and
                                 # shadowed this counter, so the emit receipt
                                 # printed an int that no longer existed.

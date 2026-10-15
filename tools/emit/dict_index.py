@@ -132,7 +132,9 @@ def main(argv: list[str] | None = None) -> int:
     hdr_path = args.dict_dir / "index.json"
     if hdr_path.is_file():
         try:
-            header = json.loads(hdr_path.read_text(encoding="utf-8"))
+            # Session 18 D0 (Rule 12): index.json has a .gz sibling; read the
+            # resolving form so a gzipped header does not fail or go stale.
+            header = json.loads(safeio.read_maybe_gzip(hdr_path).decode("utf-8"))
         except json.JSONDecodeError as e:
             raise SystemExit(f"[dict_index] {hdr_path} is unreadable ({e}); refusing "
                              f"to emit a client index with a half-known header")
