@@ -13,7 +13,8 @@ The document a new maintainer reads first. Written at the end of Session 15.
 | Repository | 11 commits on `master`, clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
 | Tests | 330 passed, 22 skipped, 1 xfailed |
 | Guards | 17, all pass, all run inside `tools/build.py` |
-| Learning layer | Session 16: `/quiz/`, 959 data-derived items · Session 18: `/drill/`, 2,599 cloze items, browser-local progress |
+| Learning layer | Session 16: `/quiz/`, 959 items · Session 18: `/drill/`, 2,589 cloze items · Session 19: `/course/`, 15 lessons with checkpoints, browser-local progress |
+| Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. |
 | Lighthouse | `/dict/` 90/93→**100**/96/100, `/corpus/sahidic_ruth/` 78/**92→100**/96/100 |
 
 ## What is live (on the preview)
@@ -26,10 +27,15 @@ The document a new maintainer reads first. Written at the end of Session 15.
 - **`/quiz/`** — seven data-derived quiz types in 19 static banks. Ten-question
   sessions, localStorage scoring, spaced repetition, JSON export/import, and a
   static no-JS topic list. Progress never leaves the browser.
-- **`/drill/`** — cloze drills from real corpus verses, 2,599 items in 6
-  per-work banks. Ten-drill sessions, localStorage scoring, answer linked to
+- **`/drill/`** — cloze drills from real corpus verses, 2,589 items in 6
+  per-work banks (lexical blanks only since Session 19 D1). Ten-drill
+  sessions, localStorage scoring, answer linked to
   its dictionary entry, and a static no-JS work list. Every answer re-read
   from the tarball by `drill_guard.py`.
+- **`/course/`** — fifteen lessons chaining reading, quiz, drill, passage,
+  and checkpoint. Checkpoints are real ten-question sessions (70% unlocks
+  next, override available); lessons 1–5 teach, 6–15 carry filters with a
+  Session 20 TODO. `course_guard.py` checks every filter resolves to data.
 - **Offline** — the service worker registers, precaches exactly 8 declared
   entries, and serves the dictionary with the network off.
 - **CSP** — `script-src 'self' 'wasm-unsafe-eval'`, no `unsafe-inline`, zero

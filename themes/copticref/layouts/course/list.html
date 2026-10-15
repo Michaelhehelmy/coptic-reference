@@ -1,0 +1,44 @@
+{{ define "main" }}
+<h1>Course</h1>
+{{ .Content }}
+
+<noscript id="course-noscript">
+  <h2>Fifteen lessons</h2>
+  <p><strong>The interactive course needs JavaScript.</strong> Checkpoints
+  are scored in the browser from the static quiz banks; with scripting off,
+  the sequence below is the whole course. Read each lesson page, work its
+  quiz and drills, then read its passage.</p>
+  <ol>
+    <li>The alphabet and its sounds</li>
+    <li>Articles and nouns</li>
+    <li>Saying and doing: core verbs</li>
+    <li>The past that happened</li>
+    <li>Negation and number</li>
+    <li>Pronouns that point</li>
+    <li>Commands and wishes</li>
+    <li>The converter and relative clauses</li>
+    <li>Prepositions of place and agency</li>
+    <li>The parables read whole</li>
+    <li>Long sentences in a saint's life</li>
+    <li>Purpose and result clauses</li>
+    <li>The martyr speaks: direct discourse</li>
+    <li>Lausiac brevity: sayings of the elders</li>
+    <li>Reading alone: Ruth whole</li>
+  </ol>
+</noscript>
+
+<p id="course-status" class="note" role="status">Loading the course …</p>
+<div id="course-lessons" aria-live="polite"></div>
+<div id="course-checkpoint" aria-live="polite"></div>
+
+<p>
+  <button id="course-unlock-all" type="button">Unlock all lessons</button>
+</p>
+<p class="note">For advanced learners: unlocking everything skips nothing
+except the gate. Nothing is sent anywhere either way.</p>
+
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, and course.js
+     calls it. Same discipline as the quiz and drill pages. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/course.js" | relURL }}" defer></script>
+{{ end }}

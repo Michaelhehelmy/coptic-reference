@@ -479,6 +479,25 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 19 status
+
+**The course chains the banks, and every guard ships with its reproducing test.**
+
+- `/course/` offers fifteen lessons from the alphabet to reading Ruth alone.
+  Each lesson chains a reading page, a quiz filter, a drill filter, a corpus
+  passage, and a checkpoint — a real ten-question session from the lesson
+  band's vocabulary banks (70% unlocks the next lesson, with an override for
+  advanced learners). `coursegen.py` emits the chain from lesson front
+  matter; `course_guard.py` checks every filter resolves to data. Lessons
+  1–5 teach with corpus-verified prose; 6–15 ship complete filters with a
+  Session 20 TODO. Playwright completes lesson 1 and proves lesson 2 unlocks
+  (and starts locked); Lighthouse on `/course/`: 100/100/96/86.
+- **Rule 13**: a guard ships with the test that reproduces its class — the
+  reader-usage guard is now AST-based (E32), with the regex as pre-filter.
+- Drill blanks are lexical words only (Session 19 D1 decision): the Ruth
+  sample blanked a bound clitic, so `is_blankable` is now N/NPROP/V/VSTAT/
+  ADV/NUM; 2,589 items re-emitted, guard clean.
+
 ## Session 18 status
 
 **The site teaches grammar-in-context, and every pipeline file has one reader.**

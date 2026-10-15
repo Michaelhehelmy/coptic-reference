@@ -2714,3 +2714,70 @@ quizgen's seeded shuffle (one implementation). The UI mirrors quiz.js
 (fetch/render/localStorage; answer links to `/dict/?q=`); the no-JS fallback
 lists the six works. `/drill/` is now a required route in
 `public_completeness_guard.py`, alongside `/quiz/`.
+
+---
+
+## Session 19 — Rule 13, AST guard, course
+
+### D0: Rule 13 and the AST rewrite (E32)
+
+Rule 13 ("a guard that closes a class needs a test that reproduces the
+class") is verbatim in HANDOFF.md §8a and CONTRIBUTING.md. `reader_usage_guard`
+now parses with `ast`: calls opening/reading/writing/copying files have path
+expressions resolved (constants joined through `/`, f-string parts, variables
+followed transitively with scope separation and cycle guard); the Session 18
+regexes survive as a file-level pre-filter. The rewrite caught its own
+over-reach twice before shipping: file-wide variable merging flagged three
+innocent vault writes (fixed by per-function scopes), and harvesting *content*
+arguments flagged vault prose mentioning `data/dist` (fixed by harvesting
+path-position args only). Nested-in-mediated calls, `tarfile.open`
+(single-form tarball), and hash-only reads are exempt by stated principle.
+E31's split-line shape has a reproducing test the old regex provably misses.
+Fresh survey of the tree: clean, including the new drill files.
+
+### D1: drill blanks lexical words, not bound morphology (decision b)
+
+The Ruth sample item blanked ⲥ (PPERS subject clitic, lemma ⲛⲧⲟⲥ) with
+choices ⲕ/ⲩ/ⲥ/ⲛ — all bound pronominal markers. Measured against the whole
+corpus, the looser "anything segmented" pool was two-thirds functional
+morphology (PPERS+PPERO+CONJ+APST+PTC+PPOS+CREL+PDEM ≈ 24k of 35k blankable
+tokens), and single-verse agreement choices are frequently underdetermined
+while lexical choice is answerable from the verse. So the drill was wrong,
+not the rule: `is_blankable` is now the open lexical classes
+(N/NPROP/V/VSTAT/ADV/NUM) only. Re-emit: 2,589 items (was 2,599),
+guard clean; the Ruth sample now blanks ⲕⲣⲓⲧⲏⲥ (N) with noun distractors.
+Coverage cost 10 verses; ambiguity skips fell (lexical lemmas repeat less).
+
+### D2: unsigned commits are a standing state (Option B)
+
+No signing key exists in this environment and none is expected: policy, not
+accident. SHIP.md carries a Signing row and HANDOFF.md §8a a paragraph; per
+C4 this is recorded once and never again as a session footnote. Re-signing
+was not possible (nothing to sign with) and would rewrite pushed-adjacent
+history to no benefit.
+
+### D3/D5: the course plan is data before it is prose
+
+The 15-lesson plan (`content/lessons/README.md`) lists only corpus-attested
+lemmas with dictionary entries — verified mechanically, twice: first pass
+found 24 invented-from-memory words in lessons 6–14 (replaced with
+frequency-measured alternatives), second pass 4 more without headwords.
+Glosses in lesson prose are the dictionary's first glosses, checked the same
+way (this caught ⲭⲱ glossed "say" from memory — it is "put, place" — and an
+invented ⲭⲣⲓⲥⲧⲟⲥ-adjacent fantasy about ϭⲟⲓⲗⲉ). Placeholder front matter for
+lessons 06–15 was first hand-transcribed as Unicode escapes and wrong in
+five places (ϥ written as ⳉ among others); generation now extracts lemma
+lists from the verified plan text, with each lemma asserted present in the
+plan, the corpus, and the dictionary.
+
+### D4: the checkpoint is a real session, not a button
+
+Unlocking runs ten questions from the lesson band's vocabulary banks,
+preferring items whose answer is a lesson word, rotated by attempt count;
+70% (the lesson threshold) unlocks the next lesson client-side, with an
+"unlock all" override for advanced learners. The Playwright test recomputes
+the deterministic selection from the published banks and answers correctly —
+if client and test drift, the test answers wrong and fails, which is the
+point. Lighthouse on /course/: 100 a11y, 100 SEO, 96 best-practices (the
+missing favicon, site-wide and pre-existing), 86 performance
+(render-blocking CSS/JS shared with the quiz page).

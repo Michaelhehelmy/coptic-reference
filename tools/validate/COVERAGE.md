@@ -477,3 +477,21 @@ the difference because every test server so far has served `.gz` undecoded.
 | D4 | `/drill/` + drill.js + no-JS fallback | **DONE** | Playwright: one item completes and scores; fallback lists works |
 | D5 | all guards + pytest + Playwright | **DONE** | every guard OK; 336 + 48 passed |
 | D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md, README.md, HANDOFF.md, SHIP.md |
+
+---
+
+## Session 19 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | Rule 13 in HANDOFF §8a + CONTRIBUTING | **DONE** | verbatim from C1 |
+| D0 | AST `reader_usage_guard.py` | **DONE** | clean; E31 split-line test fails on old regex, passes on AST; 2 over-reach fixes |
+| D1 | drill lexical-blank decision | **DONE** | Ruth sample inspected; (b) chosen on measured 24k/35k + fairness; 2,589 re-emitted |
+| D2 | unsigned-commit standing state | **DONE** | SHIP.md Signing row + HANDOFF.md paragraph (Option B; no key in env) |
+| D3 | course plan | **DONE** | 15 lessons, all vocab corpus-attested with entries (28 memory-words replaced) |
+| D4 | `coursegen.py` + `course_guard.py` | **DONE** | 15 lessons chain; every filter resolves (bounds, inventory, banks) |
+| D4 | `/course/` + course.js + no-JS list | **DONE** | Playwright: lesson 1 passes → 2 unlocks; 2 starts locked; fallback lists 15 |
+| D4 | Lighthouse /course/ | **DONE** | 100 a11y / 100 SEO / 96 bp (favicon, pre-existing) / 86 perf |
+| D5 | lessons 01–05 + 10 placeholders | **DONE** | prose glosses checked vs dictionary; placeholders carry full filters + TODO |
+| D5 | `size_guard` back under budget | **DONE** | was 122% (stale plain CSVs); gzip_csvs per C4 design, now green |
+| D7 | Docs | **DONE** | this file, DECISIONS.md, PLAN-ERRATA.md (E32), README.md, HANDOFF.md, SHIP.md |

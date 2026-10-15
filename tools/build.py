@@ -258,6 +258,33 @@ def main(argv: list[str] | None = None) -> int:
                         "source": f"data/dist/drill/{name}",
                         "bytes": dest.stat().st_size})
 
+    # 3f ── the structured course file (Session 19 D4).
+    #
+    # Same order: emit, validate, then publish. coursegen reads lesson front
+    # matter; course_guard checks every filter resolves to data.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "coursegen.py")],
+                what="coursegen")
+    if rc != 0:
+        return rc
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "course_guard.py")],
+                what="course_guard")
+    if rc != 0:
+        print("[build] course guard failed — refusing to publish", file=sys.stderr)
+        return rc
+    course_src = ROOT / "data" / "dist" / "course" / "course.json.gz"
+    course_dest = PUBLIC / "data" / "course" / "course.json.gz"
+    if not course_src.is_file():
+        print("[build] FAIL — data/dist/course/course.json.gz is absent after "
+              "coursegen; refusing to publish a course page with no course.",
+              file=sys.stderr)
+        return 1
+    course_dest.parent.mkdir(parents=True, exist_ok=True)
+    safeio.write_verified(course_dest, course_src.read_bytes())
+    claimed.add(course_dest.relative_to(PUBLIC).as_posix())
+    emitted.append({"path": course_dest.relative_to(PUBLIC).as_posix(),
+                    "source": "data/dist/course/course.json.gz",
+                    "bytes": course_dest.stat().st_size})
+
     # 4 ── the vault download
     rc, _ = run([sys.executable, "tools/emit/obsidian.py"], what="obsidian")
     if rc != 0:
