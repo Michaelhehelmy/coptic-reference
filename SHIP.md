@@ -10,12 +10,12 @@ The document a new maintainer reads first. Written at the end of Session 15.
 |---|---|
 | Preview | `https://session-14.coptic-reference.pages.dev` (Session 14 build) |
 | **Production** | **`https://coptic-reference.pages.dev`** — deployed Session 15, checklist 10/10 |
-| Repository | 11 commits on `master`, clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
-| Tests | 330 passed, 22 skipped, 1 xfailed |
-| Guards | 17, all pass, all run inside `tools/build.py` |
-| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress |
+| Repository | 24 commits on `master` (through Session 22), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
+| Tests | 450 passed, 22 skipped, 1 xfailed |
+| Guards | all pass; the guards that guard the build run inside `tools/build.py`, the rest in `pytest tools/tests/` |
+| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 300 vocab + 2,589 cloze cards downloadable |
 | Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. Rationale and contributor setup: HANDOFF.md §8a. |
-| Lighthouse | `/dict/` 90/93→**100**/96/100, `/corpus/sahidic_ruth/` 78/**92→100**/96/100 |
+| Lighthouse | `/dict/` 90/93→**100**/96→**100**/100 (favicon, Session 22), `/corpus/sahidic_ruth/` 78/**92→100**/96/100, `/speak/` **100/100/100/100** |
 
 ## What is live (on the preview)
 
@@ -36,10 +36,19 @@ The document a new maintainer reads first. Written at the end of Session 15.
   and checkpoint. Checkpoints are real ten-question sessions (70% unlocks
   next, override available); lessons 1–5 teach, 6–15 carry filters with a
   Session 20 TODO. `course_guard.py` checks every filter resolves to data.
+- **`/speak/`** — the top 100 lemmas by corpus occurrence, three
+  transliteration schemes, record and compare in the browser. No ASR, no
+  score, no upload: the banner says so and a test asserts the feedback
+  area never renders a score. No-JS visitors get `/speak/top100.html`, a
+  static table.
+- **`/anki/`** — `vocab.apkg` (300 cards from the quiz banks) and
+  `drill.apkg` (all 2,589 cloze items), generated at build time from the
+  same banks the site serves, downloadable with no account.
 - **Offline** — the service worker registers, precaches exactly 8 declared
   entries, and serves the dictionary with the network off.
-- **CSP** — `script-src 'self' 'wasm-unsafe-eval'`, no `unsafe-inline`, zero
-  console violations on every route.
+- **CSP** — `script-src 'self' 'wasm-unsafe-eval'`, `media-src 'self'
+  blob:` (Session 22, for the recorder), no `unsafe-inline`, zero console
+  violations on every route.
 
 ## What is not
 
@@ -61,7 +70,7 @@ The document a new maintainer reads first. Written at the end of Session 15.
 .venv/bin/python tools/fetch/fetch_work.py --check
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 .venv/bin/python tools/build.py            # must print "guard PASSED"
-.venv/bin/python -m pytest tools/tests -q  # 330 passed, 22 skipped, 1 xfailed
+.venv/bin/python -m pytest tools/tests -q  # 450 passed, 22 skipped, 1 xfailed
 ```
 
 Needs Hugo 0.128.0 and Node 22 on PATH. Pagefind resolves from

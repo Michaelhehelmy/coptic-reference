@@ -296,6 +296,7 @@ Each of these has a specific reason. Do not "improve" past them.
 | **Do not add a database** | Not D1, not KV, not R2. Dedup is stateless. A datastore turns a $0 project into one with a bill |
 | **Do not soften `decide_by`** | It is the difference between "maybe after a year" being a commitment and being a hope. CI enforces it |
 | **Do not bump a `sources.lock` SHA without reading the diff** | A silent upstream change is how 11.5K entries change without anyone noticing |
+| **Do not reference `site.Data` in a template, and keep `data/` to what a template could safely parse** | The moment any template touches `site.Data`, Hugo unmarshals EVERY file under `data/` — including `corpus.tar.gz` and any binary a pipeline drops there — and the build dies (E35). Emit static pages with `tools/emit/*` and copy them in `tools/build.py`; binaries live in `work/` |
 
 ---
 

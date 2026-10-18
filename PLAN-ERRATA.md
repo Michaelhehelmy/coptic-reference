@@ -492,3 +492,32 @@ what it prevents — and failed the guard for containing the string. Fixed by
 describing the bug class without the literal, with a comment in the file
 saying why the literal must never appear. Guards that scan text cannot tell
 mention from use; the file now says so on its own behalf.
+
+## Session 22 errata
+
+### E35 — touching `site.Data` makes Hugo read every file under `data/`
+
+The first Session 22 build died with `data/dist/anki/drill.apkg:1:1:
+unmarshal of format "" is not supported`. The decks had been written under
+`data/dist/` (where every other pipeline artefact lives), so the obvious
+fix was to move them out; moving them made the same error reappear on
+`data/dist/corpus/corpus.tar.gz`, then — with `data/dist` renamed away
+entirely — on `data/README.md`. The tree had built cleanly 20 minutes
+earlier. `git stash` of the session's changes and a re-run proved it:
+clean tree builds, modified tree fails.
+
+The actual trigger was one template line. `speak/list.html` ranged over
+`site.Data.speak_top100` for the `<noscript>` table, and the moment any
+template references `site.Data`, Hugo's data loader unmarshals EVERYTHING
+below `data/` — every file, extension notwithstanding, binary or not.
+Without a `site.Data` reference the loader never runs, which is why
+`corpus.tar.gz` had sat unharmed in `data/` for six sessions.
+
+Fixes, both required: (1) the no-JS word list became a standalone static
+page (`/speak/top100.html`) written by `speakgen` and copied into `public/`
+by `build.py`, so nothing reads `site.Data` at all; (2) the `.apkg` decks
+moved to `work/anki/` regardless — a build product the site does not serve
+at build time has no business inside the tree a template can reach, and
+the next person who reaches for `site.Data` should not meet a zip file.
+The lesson is not "Hugo is bad at data files": it is that a data directory
+is not a scratch space the moment a template touches it.

@@ -479,6 +479,25 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 22 status
+
+**You can hear yourself, carry the drills into Anki, and the guard can
+tell a comment from a rendering bug.**
+
+- The AST rewrite of `no_object_object_guard`: acorn parses every published
+  JS file (pinned 8.19.0) and flags only what can reach a page —
+  concatenations, template literals, `innerHTML`/`textContent`/
+  `document.write` sinks. Comments and `!== "[object Object]"` comparisons
+  pass on their merits; the third-party exception list is gone.
+- `/speak/`: the top 100 lemmas ranked by corpus occurrences, three
+  transliteration schemes, record-and-compare in the browser with an
+  explicit no-ASR, no-score banner — nothing leaves the machine, and
+  `/speak/top100.html` serves the list without JavaScript.
+- `/anki/`: 300 vocabulary cards and all 2,589 cloze drills as downloadable
+  `.apkg` decks generated from the same banks the site serves. Favicon
+  shipped (best-practices 96 → 100); `POS_LABELS_REVIEW.md` puts eight
+  corpus-evidence labels in front of a human for verdicts.
+
 ## Session 21 status
 
 **Content claims are verified like code claims, and learners can write.**
