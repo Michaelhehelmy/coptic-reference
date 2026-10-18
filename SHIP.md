@@ -4,16 +4,17 @@ The document a new maintainer reads first. Written at the end of Session 15.
 
 ## Status
 
-**Preview, live and verified. Production, prepared but not promoted.**
+**Production live and verified (Session 23). A `git push` does not deploy
+this project — see “How to deploy updates”.**
 
 | | |
 |---|---|
 | Preview | `https://session-14.coptic-reference.pages.dev` (Session 14 build) |
-| **Production** | **`https://coptic-reference.pages.dev`** — deployed Session 15, checklist 10/10 |
-| Repository | 24 commits on `master` (through Session 22), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
-| Tests | 450 passed, 22 skipped, 1 xfailed |
+| **Production** | **`https://coptic-reference.pages.dev`** — Session 23 direct upload (`08459596`), post-deploy checks pass; production was stale (Session 15 content, 404s for Sessions 16–22 routes) until Session 23 D0 |
+| Repository | 29 commits on `master` (through Session 23), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
+| Tests | 454 passed, 22 skipped, 1 xfailed |
 | Guards | all pass; the guards that guard the build run inside `tools/build.py`, the rest in `pytest tools/tests/` |
-| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 300 vocab + 2,589 cloze cards downloadable |
+| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 959 quiz + 2,589 cloze cards downloadable (Session 23 replaced the 300-card `vocab.apkg` subset) · Session 23: `/expert-review-packet/`, every open expert verdict in one place |
 | Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. Rationale and contributor setup: HANDOFF.md §8a. |
 | Lighthouse | `/dict/` 90/93→**100**/96→**100**/100 (favicon, Session 22), `/corpus/sahidic_ruth/` 78/**92→100**/96/100, `/speak/` **100/100/100/100** |
 
@@ -71,7 +72,7 @@ The document a new maintainer reads first. Written at the end of Session 15.
 .venv/bin/python tools/fetch/fetch_work.py --check
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 .venv/bin/python tools/build.py            # must print "guard PASSED"
-.venv/bin/python -m pytest tools/tests -q  # 450 passed, 22 skipped, 1 xfailed
+.venv/bin/python -m pytest tools/tests -q  # 454 passed, 22 skipped, 1 xfailed
 ```
 
 Needs Hugo 0.128.0 and Node 22 on PATH. Pagefind resolves from
@@ -81,12 +82,22 @@ Needs Hugo 0.128.0 and Node 22 on PATH. Pagefind resolves from
 
 ```sh
 export WRANGLER_SEND_METRICS=false        # else the deploy fails on telemetry
-npx wrangler pages deploy public --project-name coptic-reference --branch <name>
+npx wrangler pages deploy public --project-name coptic-reference --branch master
 ```
 
-Two quirks that will otherwise cost you time: telemetry must be disabled, and the
-OAuth token cannot refresh itself (Node's `fetch` cannot reach the auth server
-that `curl` reaches fine) — re-running the command usually succeeds, `wrangler
+**A push does not deploy.** The Pages project is git-connected to this
+repository, but its builds have produced empty 404 deployments since
+Session 15 (dashboard config, not fixable from the CLI) — every push
+from Session 15 through Session 22 changed production nothing while the
+live site silently decayed. The working path is the direct upload above,
+which reads the already-baked `public/` tree. After any code or content
+change: rebuild → run the checklist → deploy → verify on the public URL
+(Rule 16, CONTRIBUTING.md). `git push` is for history; it is not a
+release step.
+
+Two other quirks that will otherwise cost you time: telemetry must be
+disabled, and the OAuth token sometimes cannot refresh itself (a network
+or IPv6 issue) — re-running the command usually succeeds, `wrangler
 login` is the fallback and is interactive.
 
 Full runbook: `DEPLOY.md`. Post-deploy verification: `POST_DEPLOY_CHECKLIST.md`
@@ -119,6 +130,33 @@ Lighthouse on production: `/dict/` **85/100/100/100**, `/corpus/sahidic_ruth/`
 **97/100/100/100** (perf/a11y/best-practices/SEO). Both accessibility scores are
 100. Best-practices is 100 on both (was 96 locally — the CDN serves the headers
 the local server never did, which is Rule 9 in one number).
+
+## Production verification (Session 23)
+
+Deployment `08459596`, direct upload of the post-D4 `public/` tree, verified
+against `https://coptic-reference.pages.dev` (HTTP checks with a browser
+User-Agent — Cloudflare 403s Python-urllib's default UA; browser checks in
+Chromium via Playwright):
+
+| Check | Result |
+|---|---|
+| Routes | all 25 sitemap routes 200 (incl. `/expert-review-packet/`, every lesson route) |
+| Titles | all 40 sitemap titles non-empty and correct, incl. the 4 fixed in D4 |
+| `/lessons/` anchors | 0 empty `<a></a>`; plan anchor reads “Structured course plan”; no stray `/nc/readme/` link |
+| Packet page | both register mirrors present, 31 blank verdict cells (23 grammar + 8 POS) |
+| `quiz.apkg` | 200, 676,058 B — exact local size, PK zip, 959 notes |
+| `drill.apkg` | 200, 3,514,586 B, 2,589 notes, 2,134 `coptic.re` dictionary links, 0 `pages.dev` |
+| `vocab.apkg` | no longer served — missing path returns the SPA-style HTML fallback |
+| Service worker | 1 registration; precache 8 = 8 declared (after settle — first read races to 0 during install) |
+| Offline | `/dict/` renders with the network off, 11,369 entries |
+| Headers | CSP (`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; …`), `access-control-allow-origin: *`, `service-worker-allowed` |
+| Console | zero errors/warnings across `/`, `/expert-review-packet/`, `/lessons/`, `/nc/`, `/anki/` |
+
+Known quirk (pre-existing): any missing path on production returns the
+homepage HTML with HTTP 200 (SPA-style fallback; no `_redirects`, no
+`404.html`), so an HTTP status alone cannot detect a missing route in
+production — check the body or use the local `http.server`, which 404s
+correctly.
 
 ## Who to contact
 

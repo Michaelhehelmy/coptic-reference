@@ -189,7 +189,7 @@ that should have verses on it.
 
 ```bash
 # ── full bake, locally ────────────────────────────────────────────────
-git clone https://github.com/coptic-reference/coptic-reference && cd coptic-reference
+git clone https://github.com/Michaelhehelmy/coptic-reference && cd coptic-reference
 make -C tools all          # fetch → parse → merge → emit → validate
                            # ~12 min on a laptop, ~2 GB RAM, no GPU
 
@@ -210,17 +210,31 @@ node tools/emit/pagefind_index.mjs     # ONE pass. not two.
 npx serve public -l 3000
 ```
 
-**Deploy:** push to `main`. Cloudflare Pages builds and deploys automatically.
-Check the preview URL in the PR before merging.
+**Deploy — a push does not deploy (Rule 16).** The Cloudflare Pages project
+is git-connected, but its builds have produced empty 404 deployments since
+Session 15 (dashboard config, not fixable from the CLI): every push from
+Sessions 15–22 changed the live site nothing while production decayed to
+Session 15 content. The working path is a direct upload of the baked tree:
+
+```bash
+export WRANGLER_SEND_METRICS=false        # telemetry makes the deploy fail
+npx wrangler pages deploy public --project-name coptic-reference --branch master
+```
+
+Then run `POST_DEPLOY_CHECKLIST.md` against the public URL. Rebuild before
+deploying if code or content changed — `wrangler` uploads `public/`, it does
+not run the bake. `git push` is for history only; it is not a release step.
 
 **Roll back:**
 
 ```bash
-# site only — revert and push, ~2 min
-git revert <sha> && git push
+# site — revert, rebuild, deploy (~5 min; pushing alone does nothing)
+git revert <sha> && make -C tools all && npx wrangler pages deploy public \
+  --project-name coptic-reference --branch master
 
 # one bake that went wrong — restore the last good data/dist
-git checkout <last-good-sha> -- data/dist && git commit -m "revert data/dist" && git push
+git checkout <last-good-sha> -- data/dist && git commit -m "revert data/dist" \
+  && npx wrangler pages deploy public --project-name coptic-reference --branch master
 ```
 
 **Force-push `data/dist` is almost never right.** If a bake produced bad data,

@@ -2962,3 +2962,102 @@ new speak/anki/AST suites; Lighthouse `/speak/` 100/100/100/100. Committed
 in two — `(guard upgrade + POS review)` then `(pronunciation + Anki +
 favicon)` — pushed `3e3748e..b70f338`, 0 ahead, clean tree. Commits remain
 unsigned per the standing policy (Session 19 D2).
+
+## Session 23
+
+### D0: production was eight sessions behind, and a push cannot fix it
+
+The session opened with a production check and found the live site still
+serving the Session 15 build: every route added since — `/quiz/`,
+`/drill/`, `/course/`, `/write/`, `/speak/`, every lesson page — returned
+404s that the SPA-style fallback masked as a 200 homepage, so a
+status-code check would have called the site healthy. Seven sessions of
+pushes had changed production nothing: the Pages project is git-connected,
+but its builds have emitted empty 404 deployments since `886a48f`
+(dashboard-side config the CLI cannot read or fix), while deploy previews
+kept looking green. Promotion was therefore an upload, not a push:
+`npx wrangler pages deploy public` (`66a9a37a`), then the full
+`POST_DEPLOY_CHECKLIST.md` against the public URL — manifest local ==
+remote, SW 8/8 precache, offline dictionary, pagefind, dict round trip,
+headers, gzip, zero console errors. Rule 16 was written from this
+finding: the rule only works if deployment happens in the same breath as
+the change, and the docs had been teaching the opposite. HANDOFF §5's
+"push to main, Cloudflare deploys automatically" was replaced with the
+upload command and an explicit statement that push ≠ deploy.
+
+### D1: the deck's subset was a bug, and the ids matter more than the name
+
+The Session 22 `vocab.apkg` carried 300 cards against a 959-item quiz
+corpus — its bank glob only matched `english_to_coptic-*` and
+`coptic_to_english-*`. Every item in all 19 banks resolves (valid
+correct index, non-empty choices) and the package lands at 676,058 B, so
+the 300 was accident, not design; there was no "conservative scope" to
+defend. The fix globs every quiz bank. The deck and file were renamed
+(`Coptic Reference::Quiz Items`, `quiz.apkg`) because "vocabulary" no
+longer described 19 banks of five item types, but deck id, model id and
+the `coptic-ref-vocab` guid namespace are unchanged — an existing import
+must upgrade in place rather than duplicate, and guids are derived from
+item ids, so cards match on re-import. Splitting by band was rejected:
+`verse_matching` has no difficulty band to split on. The real guard
+against regression is `test_quiz_deck_carries_every_bank_item`, which
+sums the banks and asserts equality against the collection — a subset can
+never ship silently again. Drill cards now deep-link `coptic.re`
+(`SITE_BASE` follows `hugo.yaml`'s canonical baseURL), so 2,134
+dictionary links across 2,589 notes stop pointing at the pages.dev
+alias.
+
+### D2: Rules 15 and 16, verbatim, where the other fourteen live
+
+Rule 15 (a template names a file, not a directory — E35's standing lesson)
+and Rule 16 (shipped means live on the public URL and verified there; a
+push is not a deploy) were dictated verbatim and inserted unchanged:
+HANDOFF §8a in the same bold-statement-plus-evidence shape as Rules 1–14,
+CONTRIBUTING.md as `## Rule 15` / `## Rule 16` sections. Verified
+text-identical between the question and both files (whitespace-normalized
+comparison) — the rules are the user's words, not paraphrase.
+
+### D3: the review packet mirrors the registers, it does not fork them
+
+GRAMMAR_CLAIMS.md and POS_LABELS_REVIEW.md stay the source of truth;
+`content/EXPERT_REVIEW_PACKET.md` re-serves their tables line for line
+(23 grammar rows including the two no-claim lessons, 8 POS rows, all
+verdict cells blank) with response instructions — verdict vocabulary
+(`confirmed` / `corrected: …` / `cannot adjudicate: …`), where to answer,
+and what a verdict triggers (register filled first, packet re-emitted by
+the same build). A copy of a reviewed table drifts the moment someone
+edits the original, so `test_review_packet.py` fails the build if either
+table's pipe-rows diverge from the registers in order or if a verdict
+cell is filled in the mirror instead of the register. Two transcription
+slips found by the mirror check itself ("Restates lesson 1", "Seven
+labels … an eighth (AAOR)") were corrected before commit — the test
+earned its keep on day one.
+
+### D4: four defects, one walk
+
+A script walked all 40 sitemap routes on a local `http.server` (which
+404s honestly, unlike production's fallback) checking status, `<title>`,
+meta description, header nav, footer, every internal href, empty anchors
+and no-JS markers — 99 internal paths. Four pre-existing defects: three
+pages with no front-matter title (empty `<title>`, invisible anchor text
+in lists); `/nc/` titled "Ncs" from auto-derived section naming; the
+`list.html` contentless-section fallback ranging `.Site.RegularPages`,
+which dumped every section's pages — including the title-less
+`/nc/readme/` — inside `/lessons/` and every other empty section (now
+`.Pages`: a section lists itself); and the deck's pages.dev links (D1).
+Re-walk after rebuild: 0 problems, 0 broken links, 40 correct titles.
+Production re-verified after the final deploy `08459596`, including the
+31 blank verdict cells on the packet page and 0 empty anchors on
+`/lessons/`.
+
+### D5/D6/D7: the battery, four commits, the docs
+
+All 29 CI guard commands plus the build-internal guards pass
+(`lesson_vocab_guard` and `reader_usage_guard` run standalone only);
+POS controlled-vocabulary heredoc (21 values) re-checked;
+**454 passed, 22 skipped, 1 xfailed** (+1 renamed invariant, +3 packet
+tests). Committed in four — deck fix (`1d2f47b`), rules + packet
+(`5d76fdf`), consistency fixes (`02f751b`), docs (this commit) — pushed,
+0 ahead, clean tree. Deployment `08459596` carries the final state, so
+Rule 16 holds for this session's changes: what is on `master` is what is
+on `coptic-reference.pages.dev`, verified there. Commits remain unsigned
+per the standing policy (Session 19 D2).

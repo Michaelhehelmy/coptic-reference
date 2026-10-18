@@ -554,3 +554,29 @@ the difference because every test server so far has served `.gz` undecoded.
   `speakgen` emits no `ipa` key rather than a blank one (see DECISIONS.md D1).
 - **Anki import on a real device.** The `.apkg` files are verified as Anki
   collections (zip + sqlite, deck ids, note counts), not opened in Anki itself.
+
+## Session 23 — coverage
+
+| ID | Item | Status | Evidence |
+|----|------|--------|----------|
+| D0 | production staleness audit + direct-upload promotion | **DONE** | all post-15 routes 404 behind the 200 homepage fallback; promoted `66a9a37a`, checklist pass (manifest local==remote, SW 8/8, offline dict, headers, gzip, no console errors) |
+| D1 | `quiz.apkg` = all 959 quiz items | **DONE** | 19 banks, 676,058 B (was 300 cards / 200,922 B as `vocab.apkg`); deck/model/guid ids kept for in-place upgrade; invariant `test_quiz_deck_carries_every_bank_item`; deployed `797c0916`, prod bytes exact |
+| D1 | canonical `SITE_BASE` in decks | **DONE** | drill.apkg 2,134 `coptic.re` dict links, 0 `pages.dev`; 3,514,586 B, 2,589 notes |
+| D2 | Rules 15 + 16 verbatim | **DONE** | HANDOFF §8a (same shape as 1–14) + CONTRIBUTING `## Rule 15/16`; whitespace-normalized text-identical check |
+| D3 | `content/EXPERT_REVIEW_PACKET.md` + drift guard | **DONE** | mirror of 23 grammar + 8 POS rows, verdict cells blank, verdict vocabulary + workflow; `test_review_packet.py` (3 tests) fails on any drift or filled mirror cell |
+| D4 | site-wide consistency walk | **DONE** | 40 sitemap routes / 99 internal paths; 4 fixes (3 empty titles, `Ncs`→`NC material`, `list.html` `.Site.RegularPages`→`.Pages`); re-walk 0 problems, 0 broken links |
+| D5 | full CI guard battery | **DONE** | all 29 workflow commands + build-internal guards + `lesson_vocab_guard`/`reader_usage_guard` standalone + 21-value POS heredoc; **454 passed, 22 skipped, 1 xfailed** |
+| D6 | four commits + push | **DONE** | `1d2f47b` (deck), `5d76fdf` (rules+packet), `02f751b` (walk fixes), docs commit; pushed, 0 ahead, clean tree |
+| D7 | production re-verify + docs | **DONE** | deployment `08459596`: 25 routes 200, 40 titles, packet page 31 blank verdicts, decks byte-exact, precache 8=8, offline dict, zero console errors; this file, DECISIONS.md (Session 23), PLAN-ERRATA.md (E36), README.md, HANDOFF.md §5 + clone URL, SHIP.md |
+
+### Not covered
+
+- **Why the git-connected Pages build emits empty deployments.** The
+  failure is dashboard-side; the CLI cannot read the build config.
+  Direct upload is the working path (SHIP.md, HANDOFF §5); repairing or
+  disconnecting the git build is a Cloudflare dashboard task for Michael.
+- **Lighthouse this session.** No JS/CSS/CSP change — content, templates
+  and decks only; Session 22's numbers stand.
+- **Anki import on a real device** (carried from Session 22). Decks are
+  verified as Anki collections (zip + sqlite, note counts, guid
+  uniqueness), not opened in the Anki app.

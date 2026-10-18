@@ -521,3 +521,37 @@ at build time has no business inside the tree a template can reach, and
 the next person who reaches for `site.Data` should not meet a zip file.
 The lesson is not "Hugo is bad at data files": it is that a data directory
 is not a scratch space the moment a template touches it.
+
+## Session 23 errata
+
+### E36 — a push is not a deploy, and on this project it has not been one since Session 15
+
+Session 22's receipts said "pushed `3e3748e..b70f338`, 0 ahead" as though
+that ended the work. It did not: at the start of Session 23 every route
+added since Session 15 — `/quiz/`, `/drill/`, `/course/`, `/write/`,
+`/speak/`, all fifteen lesson pages — was a 404 on production, which was
+still serving the Session 15 build. Seven sessions of documentation,
+tests and deploys-in-spirit never reached the live URL.
+
+Two facts stacked so nobody noticed. First, the Cloudflare Pages project
+is git-connected, but its build has produced **empty 404-only
+deployments** since `886a48f` — a dashboard-side configuration the CLI
+cannot read, let alone fix; each push created a deployment, and deploy
+previews looked green, so the pipeline looked busy and healthy. Second,
+production serves the homepage HTML with HTTP 200 for any missing path
+(SPA-style fallback; no `_redirects`, no `404.html`), so a status-code
+check reports every dead route as alive — the 404s were only visible by
+reading the body.
+
+The fix was never in the plan because the plan (correctly) assumed
+`push → deploy`: `npx wrangler pages deploy public` direct-uploads the
+baked tree and works (`66a9a37a`, `797c0916`, `08459596`). The durable
+correction is Rule 16 — shipped means deployed to the public URL and
+verified there, in the same session, and the session receipt must name
+the deployment — plus HANDOFF §5, which now teaches the upload instead
+of "push to main, Cloudflare deploys automatically". Until the dashboard
+build is repaired or the project is disconnected from git, every
+maintainer must treat `git push` as history-keeping and the deploy
+command as the release. And no production check should trust a status
+code alone on this host: compare the body (title, or a known marker)
+against what you expect to have shipped.

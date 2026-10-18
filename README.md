@@ -57,11 +57,11 @@ makes content safe to add — but no real source has been through them.
 
 ## Quick start
 
-There is nothing to run yet — no site, no Makefile. What you can do today is run
-the gates, which is the useful thing for a new contributor to do first.
+Bake the site, run the gates. For a new contributor the gates are the useful
+thing to do first — they are the same commands CI runs (`.github/workflows/ci.yml`).
 
 ```bash
-git clone https://github.com/coptic-reference/coptic-reference.git
+git clone https://github.com/Michaelhehelmy/coptic-reference.git
 cd coptic-reference
 
 python3 -m venv .venv && . .venv/bin/activate
@@ -478,6 +478,35 @@ People: **[/credits/](credits.md)** (hand-written).
 If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
+
+## Session 23 status
+
+**Production tells the truth again — the Anki deck is the whole corpus of
+quiz items, and every open expert question sits on one page.**
+
+- D0 found production still serving Session 15: seven sessions of pushes
+  (16–22) never reached the live URL because the git-connected Pages build
+  produces empty deployments (dashboard config) — every route from
+  `/quiz/` onward was a 404 behind the SPA-style homepage fallback.
+  Promoted by direct `wrangler pages deploy`, then verified there
+  (Rule 16): 25 routes 200, precache 8 = 8, offline dictionary, decks,
+  zero console errors.
+- `/anki/` quiz deck corrected: the Session 22 `vocab.apkg` shipped only
+  300 of the 959 quiz items (an accident of its bank glob). `quiz.apkg`
+  now carries every item of all 19 banks (676,058 B), deck renamed
+  `Coptic Reference::Quiz Items` with ids kept so existing imports
+  upgrade in place; an invariant test fails the build on any subset.
+  Drill links now use the canonical `coptic.re` host.
+- Rules 15 and 16, verbatim: a template names a file, not a directory
+  (E35); shipped means live and verified on the public URL — a push is
+  not a deploy (this session's own finding, written back into the docs).
+- `/expert-review-packet/` gathers the 23 grammar claims and 8 POS labels
+  with evidence and a three-value verdict vocabulary; the mirror tables
+  are guarded by a drift test — registers stay the source of truth.
+- Site-wide consistency walk over all 40 sitemap routes: four fixed
+  (three empty page titles, the `Ncs` section title, the list template
+  enumerating the whole site inside every contentless section); re-walk
+  clean. Battery: 454 passed, 22 skipped, 1 xfailed.
 
 ## Session 22 status
 
