@@ -555,3 +555,17 @@ maintainer must treat `git push` as history-keeping and the deploy
 command as the release. And no production check should trust a status
 code alone on this host: compare the body (title, or a known marker)
 against what you expect to have shipped.
+
+One more layer, found while closing the session: even a correct body
+check can be reading yesterday's deploy. The apex edge caches assets
+with `s-maxage=604800` and does **not** purge on deployment — the
+Session 23 build's `BUILD-MANIFEST.json` was invisible on
+`coptic-reference.pages.dev` for hours (age 21,597 and counting, born
+at the D0 fetch, surviving two later deploys) while the deployment
+hostname `08459596.coptic-reference.pages.dev` served the new file with
+`max-age=0, must-revalidate`. Anything fetched in an earlier deployment
+can therefore report stale bytes for up to seven days, and a
+local-versus-remote manifest comparison fails for a reason that is
+entirely cache. Verify with `cf-cache-status`/`age` in the response, or
+fetch the same path from the deployment URL, before believing a
+discrepancy — and before claiming an agreement.

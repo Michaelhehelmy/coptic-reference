@@ -152,11 +152,23 @@ Chromium via Playwright):
 | Headers | CSP (`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; …`), `access-control-allow-origin: *`, `service-worker-allowed` |
 | Console | zero errors/warnings across `/`, `/expert-review-packet/`, `/lessons/`, `/nc/`, `/anki/` |
 
-Known quirk (pre-existing): any missing path on production returns the
-homepage HTML with HTTP 200 (SPA-style fallback; no `_redirects`, no
-`404.html`), so an HTTP status alone cannot detect a missing route in
-production — check the body or use the local `http.server`, which 404s
-correctly.
+Known quirks on this host (both pre-existing, both found Session 23):
+
+- **Missing paths return the homepage HTML with HTTP 200** (SPA-style
+  fallback; no `_redirects`, no `404.html`), so a status code alone
+  cannot detect a dead route in production — check the body or use the
+  local `http.server`, which 404s correctly.
+- **The apex edge cache survives deploys.** Assets fetched before a
+  deployment can keep serving the old bytes for up to 7 days
+  (`s-maxage=604800`, no purge on deploy — observed spanning two
+  deployments; e.g. `BUILD-MANIFEST.json` on the apex still reported the
+  D0 bake hours after `08459596` shipped the new one). Fresh origin is
+  visible at the deployment hostname
+  (`https://08459596.coptic-reference.pages.dev/…`), which serves
+  `max-age=0, must-revalidate`. When verifying after a deploy, check
+  `cf-cache-status`/`age` on anything fetched in an earlier session, or
+  fetch it from the deployment URL — otherwise you are reading the
+  previous deployment and calling it yours.
 
 ## Who to contact
 
