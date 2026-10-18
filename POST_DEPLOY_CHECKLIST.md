@@ -18,29 +18,97 @@ Record the result of each line. Anything marked ✗ is a blocker.
 curl -sS "$URL/BUILD-MANIFEST.json" | python3 -c "
 import json,sys
 m=json.load(sys.stdin)
-print('files :', len(m['files']))
-print('bytes :', f\"{m['total_bytes']:,}\")"
+print('files :', m.get('file_count', len(m.get('emitted', []))))
+print('bytes :', f\"{sum(e['bytes'] for e in m.get('emitted', [])):,}\")"
 ```
 
-- ✗ fails · ✓ **114 files, 8,075,302 B** at Session 11
+- ✗ fails · ✓ **matches the manifest your local build just wrote**
+  (`m['files']`/`m['total_bytes']` were the Session 11 keys; the manifest
+  has `file_count`/`emitted` since — the old command crashed, which is a
+  false blocker, not a pass)
 
 Compare against `tools/validate/size_guard.py` budgets: `data/dist` < 5 MiB,
-`public` < 20 MiB. If either is exceeded, stop.
+`public` < 20 MiB. If either is exceeded, stop. If the numbers match an
+*older* bake than yours, suspect the apex edge cache before the build: it
+serves old bytes for up to seven days across deploys (check
+`cf-cache-status`/`age`, compare against the deployment URL — PLAN-ERRATA
+E36).
 
 ## 2. The routes exist
 
+**Rule 17: a status code is not the existence of a route.** What a
+missing path answers on this project depends on the hostname, and none
+of the answers identify a route: the apex returns a bare **404** (0
+bytes, `cache-control: no-store`); a deployment URL returns **200 + the
+homepage** (`x-robots-tag: noindex` — Pages' own soft-404 marker); an
+empty git deployment returns **404 for everything, including `/`**.
+Measured Session 23 (see DECISIONS D8). So each entry needs all three:
+status 200, the exact `<title>` that route must produce, and a body
+marker only that route's content carries. The title and marker are what
+prove the route.
+
 ```sh
-for p in / /dict/ /corpus/ /corpus/sahidic_ruth/ /corpus/bohairic_mark/ \
-         /licences/ /dialects/ /sw.js /sitemap.xml; do
-  printf "%-28s %s\n" "$p" "$(curl -sS -o /dev/null -w '%{http_code}' "$URL$p")"
-done
+route() {  # path  expected-title ("-" if not HTML)  body-marker
+  b=$(mktemp)
+  code=$(curl -sS -o "$b" -w '%{http_code}' "$URL$1")
+  if [ "$2" = "-" ]; then t=1
+  else grep -qF "<title>$2</title>" "$b" && t=1 || t=0; fi
+  grep -qF "$3" "$b" && m=1 || m=0
+  if [ "$code" = 200 ] && [ "$t" = 1 ] && [ "$m" = 1 ]; then
+    printf '✓ %-34s\n' "$1"
+  else
+    printf '✗ %-34s code=%s title_ok=%s marker_ok=%s\n' "$1" "$code" "$t" "$m"
+  fi
+  rm -f "$b"
+}
+
+route /                          "Coptic Reference"                "href=/quiz/"
+route /dict/                     "Dictionary · Coptic Reference"   "id=count-all"
+route /corpus/                   "Corpus · Coptic Reference"       "sahidic_ruth"
+route /corpus/sahidic_ruth/      "Ruth · Coptic Reference"         "id=corpus-status"
+route /quiz/                     "Quiz · Coptic Reference"         "quiz.js"
+route /drill/                    "Drills · Coptic Reference"       "drill.js"
+route /course/                   "Course · Coptic Reference"       "course.js"
+route /lessons/                  "Lessons · Coptic Reference"      "Structured course plan"
+route /lessons/01/               "Lesson 1 — The alphabet and its sounds · Coptic Reference" "Lesson 1"
+route /lessons/readme/           "Structured course plan — Session 19 D3 · Coptic Reference"   "Structured course plan"
+route /readme/                   "About this content · Coptic Reference"   "Human-authored site content"
+route /nc/                       "NC material · Coptic Reference"  "NC material"
+route /nc/readme/                "NC material — notes · Coptic Reference"   "Never imported into data"
+route /anki/                     "Anki decks · Coptic Reference"   "quiz.apkg"
+route /expert-review-packet/     "Expert review packet · Coptic Reference" "source of truth"
+route /speak/                    "Speaking · Coptic Reference"     "speak.js"
+route /write/                    "Writing · Coptic Reference"      "canvas"
+route /licences/                 "Licences · Coptic Reference"     "LICEN"
+route /dialects/                 "Dialects · Coptic Reference"     "Bohairic"
+route /sw.js                    "-"                               "const PRECACHE"
+route /sitemap.xml               "-"                               "<urlset"
 ```
 
-- ✗ fails · ✓ **200**
+Then run the negative control — a path that was never shipped. It **must
+print ✗**; its `code` column says what answered:
 
-All six works must be listed. `/corpus/` should link
-`bohairic_1corinthians`, `bohairic_mark`, `lausiac_history`, `life_of_isaac`,
-`martyrdom_of_victor`, `sahidic_ruth`.
+```sh
+route /no-such-route/  "Coptic Reference"  "marker-shipped-never"
+# apex:                 ✗ code=404 title_ok=0 marker_ok=0
+# deployment URL:       ✗ code=200 title_ok=1 marker_ok=0   (soft-404 homepage)
+# ✓ from this line: the response body contains a string never shipped — stop and read what answered
+```
+
+- ✗ **any positive line.** `code=200 title_ok=0 marker_ok=0` is the
+  soft-404 homepage answering for a path that does not exist (reproduces
+  on every deployment URL, e.g.
+  `https://08459596.coptic-reference.pages.dev/no-such-route/`); `code=404`
+  means the route is genuinely absent. Either way the status code alone
+  told you nothing — the title and marker did (Rule 17).
+- A title mismatch on a route you know exists locally: check
+  `cf-cache-status`/`age` first — the apex edge serves old bytes for up
+  to seven days across deploys (E36). Fetch the same path from the
+  deployment URL before calling the route broken.
+
+All six works must be listed on `/corpus/`:
+`bohairic_1corinthians`, `bohairic_mark`, `lausiac_history`,
+`life_of_isaac`, `martyrdom_of_victor`, `sahidic_ruth`.
 
 ## 3. The service worker registers
 
@@ -179,7 +247,7 @@ is false.
 | # | Item | Result |
 |---|---|---|
 | 1 | File count and size | |
-| 2 | Routes return 200 | |
+| 2 | Routes exist (200 + title + marker, Rule 17) | |
 | 3 | Service worker registers | |
 | 4 | Offline renders and caches 8 entries | |
 | 5 | Pagefind loads (Coptic hits > 0) | |

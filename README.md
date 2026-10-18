@@ -487,7 +487,7 @@ quiz items, and every open expert question sits on one page.**
 - D0 found production still serving Session 15: seven sessions of pushes
   (16–22) never reached the live URL because the git-connected Pages build
   produces empty deployments (dashboard config) — every route from
-  `/quiz/` onward was a 404 behind the SPA-style homepage fallback.
+  `/quiz/` onward was absent from production.
   Promoted by direct `wrangler pages deploy`, then verified there
   (Rule 16): 25 routes 200, precache 8 = 8, offline dictionary, decks,
   zero console errors.

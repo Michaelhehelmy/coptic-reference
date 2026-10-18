@@ -146,7 +146,7 @@ Chromium via Playwright):
 | Packet page | both register mirrors present, 31 blank verdict cells (23 grammar + 8 POS) |
 | `quiz.apkg` | 200, 676,058 B — exact local size, PK zip, 959 notes |
 | `drill.apkg` | 200, 3,514,586 B, 2,589 notes, 2,134 `coptic.re` dictionary links, 0 `pages.dev` |
-| `vocab.apkg` | no longer served — missing path returns the SPA-style HTML fallback |
+| `vocab.apkg` | no longer served — apex answers 404; deployment URLs answer with the homepage body (soft-404, `x-robots-tag: noindex`) |
 | Service worker | 1 registration; precache 8 = 8 declared (after settle — first read races to 0 during install) |
 | Offline | `/dict/` renders with the network off, 11,369 entries |
 | Headers | CSP (`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; …`), `access-control-allow-origin: *`, `service-worker-allowed` |
@@ -154,10 +154,15 @@ Chromium via Playwright):
 
 Known quirks on this host (both pre-existing, both found Session 23):
 
-- **Missing paths return the homepage HTML with HTTP 200** (SPA-style
-  fallback; no `_redirects`, no `404.html`), so a status code alone
-  cannot detect a dead route in production — check the body or use the
-  local `http.server`, which 404s correctly.
+- **A status code does not say whether a route exists (Rule 17).**
+  Measured Session 23, reproducibly: a missing path on the apex
+  (`coptic-reference.pages.dev`) returns a bare **404** (0 bytes,
+  `cache-control: no-store`); the same missing path on a deployment
+  hostname (`<id>.coptic-reference.pages.dev`) returns **200 + the
+  homepage** (`x-robots-tag: noindex` — Pages' soft-404 marker); and a
+  git-connected deployment answers **404 for everything, including `/`**
+  (empty build). Check the `<title>` and a body marker, or use the
+  local `http.server`, which 404s missing paths honestly.
 - **The apex edge cache survives deploys.** Assets fetched before a
   deployment can keep serving the old bytes for up to 7 days
   (`s-maxage=604800`, no purge on deploy — observed spanning two

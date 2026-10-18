@@ -2969,13 +2969,16 @@ unsigned per the standing policy (Session 19 D2).
 
 The session opened with a production check and found the live site still
 serving the Session 15 build: every route added since — `/quiz/`,
-`/drill/`, `/course/`, `/write/`, `/speak/`, every lesson page — returned
-404s that the SPA-style fallback masked as a 200 homepage, so a
-status-code check would have called the site healthy. Seven sessions of
-pushes had changed production nothing: the Pages project is git-connected,
-but its builds have emitted empty 404 deployments since `886a48f`
-(dashboard-side config the CLI cannot read or fix), while deploy previews
-kept looking green. Promotion was therefore an upload, not a push:
+`/drill/`, `/course/`, `/write/`, `/speak/`, every lesson page — was
+absent (a plain 404 on the live URL), and no session since had run a
+route check against production, because pushing was assumed to deploy.
+Seven sessions of pushes had changed production nothing: the Pages
+project is git-connected, but its builds have emitted empty 404
+deployments since `886a48f` (dashboard-side config the CLI cannot read
+or fix) — re-confirmed after this session's own pushes (`d094b123`,
+`171273e4`, `35eb3c85`: manifest and `/` both 404) — while the last
+content-bearing deployment kept serving underneath. Promotion was
+therefore an upload, not a push:
 `npx wrangler pages deploy public` (`66a9a37a`), then the full
 `POST_DEPLOY_CHECKLIST.md` against the public URL — manifest local ==
 remote, SW 8/8 precache, offline dictionary, pagefind, dict round trip,
@@ -3035,7 +3038,9 @@ earned its keep on day one.
 ### D4: four defects, one walk
 
 A script walked all 40 sitemap routes on a local `http.server` (which
-404s honestly, unlike production's fallback) checking status, `<title>`,
+404s honestly — production's answer to a missing path depends on the
+hostname: a bare 404 on the apex, a 200 homepage on a deployment URL —
+Rule 17) checking status, `<title>`,
 meta description, header nav, footer, every internal href, empty anchors
 and no-JS markers — 99 internal paths. Four pre-existing defects: three
 pages with no front-matter title (empty `<title>`, invisible anchor text
@@ -3061,3 +3066,39 @@ tests). Committed in four — deck fix (`1d2f47b`), rules + packet
 Rule 16 holds for this session's changes: what is on `master` is what is
 on `coptic-reference.pages.dev`, verified there. Commits remain unsigned
 per the standing policy (Session 19 D2).
+
+### D8: Rule 17, and what a status code actually answers on this host
+
+Rule 17 was dictated verbatim ("a status code is not the existence of a
+route") and inserted in the two places the other sixteen live: HANDOFF
+§8a after Rule 16, and CONTRIBUTING as `## Rule 17` — text-identical
+modulo the house prefix, checked whitespace-normalized.
+`POST_DEPLOY_CHECKLIST.md` was rewritten around it: §1 reads the
+manifest's real keys (`file_count`, `emitted` — the old `files`/
+`total_bytes` command crashed on Session 23's manifest, a false
+blocker), and §2 became a `route()` helper requiring all three of
+status 200, the exact `<title>`, and a route-unique body marker across
+21 routes, plus a negative control (`/no-such-route/`) that must print
+✗. Run live against the apex: 21/21 ✓, negative control ✗.
+
+Probing for the checklist exposed that "the status code" is three
+different things on this project — all measured, reproducibly:
+
+| who answers a missing path | answer |
+|---|---|
+| apex `coptic-reference.pages.dev` | **404**, 0 bytes, `cache-control: no-store` |
+| any wrangler deployment URL | **200** + homepage (1,692 B), `x-robots-tag: noindex` — Pages' soft-404 |
+| any git-connected deployment | **404** for everything, including `/` (empty build) |
+
+The last row re-confirmed after this session's own pushes: `d094b123`,
+`171273e4`, `35eb3c85` (sources `c9ae667`, `3bd008d`, `187117b`) all
+serve 404 for `/BUILD-MANIFEST.json` and `/`. Production still serves
+the direct upload (`08459596`'s content) — the empties never replaced
+it, which is why the Session 15 build survived seven sessions of pushes.
+Because the answer depends on the hostname, the prose written earlier
+this session ("production serves the homepage with HTTP 200 for every
+missing path") was narrowed to the measured split in SHIP.md (quirks +
+`vocab.apkg` row), PLAN-ERRATA E36, README, this file's D0 and D4, and
+COVERAGE's D0 row. The dictated rule text itself is untouched — its
+substance (only response content proves a route) holds under all three
+behaviors, and the soft-404 on deployment URLs reproduces it exactly.

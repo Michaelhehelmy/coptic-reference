@@ -559,7 +559,7 @@ the difference because every test server so far has served `.gz` undecoded.
 
 | ID | Item | Status | Evidence |
 |----|------|--------|----------|
-| D0 | production staleness audit + direct-upload promotion | **DONE** | all post-15 routes 404 behind the 200 homepage fallback; promoted `66a9a37a`, checklist pass (manifest local==remote, SW 8/8, offline dict, headers, gzip, no console errors) |
+| D0 | production staleness audit + direct-upload promotion | **DONE** | production still the Session 15 build — every post-15 route 404 on the live URL, git pushes since `886a48f` had carried no content; promoted `66a9a37a`, checklist pass (manifest local==remote, SW 8/8, offline dict, headers, gzip, no console errors) |
 | D1 | `quiz.apkg` = all 959 quiz items | **DONE** | 19 banks, 676,058 B (was 300 cards / 200,922 B as `vocab.apkg`); deck/model/guid ids kept for in-place upgrade; invariant `test_quiz_deck_carries_every_bank_item`; deployed `797c0916`, prod bytes exact |
 | D1 | canonical `SITE_BASE` in decks | **DONE** | drill.apkg 2,134 `coptic.re` dict links, 0 `pages.dev`; 3,514,586 B, 2,589 notes |
 | D2 | Rules 15 + 16 verbatim | **DONE** | HANDOFF §8a (same shape as 1–14) + CONTRIBUTING `## Rule 15/16`; whitespace-normalized text-identical check |
@@ -568,6 +568,7 @@ the difference because every test server so far has served `.gz` undecoded.
 | D5 | full CI guard battery | **DONE** | all 29 workflow commands + build-internal guards + `lesson_vocab_guard`/`reader_usage_guard` standalone + 21-value POS heredoc; **454 passed, 22 skipped, 1 xfailed** |
 | D6 | four commits + push | **DONE** | `1d2f47b` (deck), `5d76fdf` (rules+packet), `02f751b` (walk fixes), docs commit; pushed, 0 ahead, clean tree |
 | D7 | production re-verify + docs | **DONE** | deployment `08459596`: 25 routes 200, 40 titles, packet page 31 blank verdicts, decks byte-exact, precache 8=8, offline dict, zero console errors; this file, DECISIONS.md (Session 23), PLAN-ERRATA.md (E36), README.md, HANDOFF.md §5 + clone URL, SHIP.md |
+| D8 | Rule 17 + deploy-checklist rewrite + quirk corrections | **DONE** | Rule 17 verbatim in HANDOFF §8a + CONTRIBUTING (text-identical mod house prefix); checklist §1 real manifest keys, §2 `route()` = 200 + exact title + route-unique marker over 21 routes + negative control; live run 21/21 ✓ and `/no-such-route/` ✗; measured split — apex missing→404, deployment URL missing→200 homepage soft-404 (`x-robots-tag: noindex`), git builds still empty after today's pushes (`d094b123`/`171273e4`/`35eb3c85`: manifest and `/` both 404); SHIP/E36/README/D0/D4 prose narrowed to that split |
 
 ### Not covered
 
@@ -575,6 +576,10 @@ the difference because every test server so far has served `.gz` undecoded.
   failure is dashboard-side; the CLI cannot read the build config.
   Direct upload is the working path (SHIP.md, HANDOFF §5); repairing or
   disconnecting the git build is a Cloudflare dashboard task for Michael.
+- **Why the apex and a deployment hostname answer a missing path
+  differently** (bare 404 vs 200 soft-404 homepage). Both measured
+  repeatedly Session 23, fresh paths included; the setting is
+  dashboard-side. The checklist no longer depends on which one it is.
 - **Lighthouse this session.** No JS/CSS/CSP change — content, templates
   and decks only; Session 22's numbers stand.
 - **Anki import on a real device** (carried from Session 22). Decks are

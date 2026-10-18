@@ -536,12 +536,17 @@ tests and deploys-in-spirit never reached the live URL.
 Two facts stacked so nobody noticed. First, the Cloudflare Pages project
 is git-connected, but its build has produced **empty 404-only
 deployments** since `886a48f` — a dashboard-side configuration the CLI
-cannot read, let alone fix; each push created a deployment, and deploy
-previews looked green, so the pipeline looked busy and healthy. Second,
-production serves the homepage HTML with HTTP 200 for any missing path
-(SPA-style fallback; no `_redirects`, no `404.html`), so a status-code
-check reports every dead route as alive — the 404s were only visible by
-reading the body.
+cannot read, let alone fix; every push created a deployment while
+shipping nothing (re-confirmed after Session 23's own pushes:
+`d094b123`, `171273e4`, `35eb3c85` all answer 404 for both
+`/BUILD-MANIFEST.json` and `/`), and no session ran a route check
+against the live URL, because pushing was assumed to deploy. Second,
+what a missing path answers depends on the hostname, not on the route:
+on the apex a bare 404, on a deployment URL the homepage with HTTP 200
+(`x-robots-tag: noindex` — a soft-404), on an empty git deployment a
+404 even for `/`. Whichever of the three a check happens to hit, the
+status code alone identifies nothing — only the response content does
+(Rule 17).
 
 The fix was never in the plan because the plan (correctly) assumed
 `push → deploy`: `npx wrangler pages deploy public` direct-uploads the

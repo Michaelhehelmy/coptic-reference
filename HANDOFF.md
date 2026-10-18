@@ -730,6 +730,28 @@ The failure mode is subtle: the code is correct, the tests pass, the push
 succeeds, and the site is old. Nothing fails. The gap is invisible until
 someone checks the URL.
 
+**Rule 17. A status code is not the existence of a route. An SPA
+fallback, a CDN, or a reverse proxy can serve HTTP 200 for any path. A
+route exists if and only if its response content is what only that route
+could produce — the title, a marker element, a specific script include,
+a distinctive string in the body, or a content-hash. A checklist that
+reads status codes has verified the CDN is responding, not that the
+routes exist.**
+
+Why: Session 23 — coptic-reference.pages.dev's SPA fallback returned
+HTTP 200 with the homepage for every path, including paths that don't
+exist. Every route check that read status codes alone across Sessions
+15-22 could not have distinguished a working route from a broken one.
+The fix was to check titles (parse the <title> and compare) and content
+markers (unique strings, script includes) rather than status codes. The
+failure mode is silent: a site with zero broken links and one broken
+route looks identical to a site with all routes working, if you only
+check status.
+
+The correct shape: a deploy checklist entry for a route is (status ==
+200) AND (title matches expected) AND (marker element present). The
+second and third conditions are the ones that prove the route.
+
 ## 9. Emergency procedures
 
 Full commands and rollback plans: **`RUNBOOK.md`**. In short:
