@@ -16,16 +16,18 @@ THE ORDER IS LOAD-BEARING
     1. rm -rf public          nothing survives from a previous build
     2. corpus_public.py       the browser-facing corpus (reads the tarball)
     3. gzip provenance CSVs   records.csv.gz, LICENSES.csv.gz
-    4. obsidian.py            the vault download
-    5. hugo                   the pages and static assets
-    6. pagefind_index.mjs     search (a no-op stub until wired)
-    7. sw_gen.mjs             the service worker (a no-op stub until wired)
-    8. manifest               name everything above
-    9. public_provenance_guard  and fail the build if anything is unaccounted for
+    4. speakgen.py            the /speak/ top-100 word list (+ static no-JS page)
+    4b. ankigen.py            the /downloads/anki/ decks (vocab + cloze)
+    5. obsidian.py            the vault download
+    6. hugo                   the pages and static assets
+    7. pagefind_index.mjs     search (a no-op stub until wired)
+    8. sw_gen.mjs             the service worker (a no-op stub until wired)
+    9. manifest               name everything above
+    10. public_provenance_guard  and fail the build if anything is unaccounted for
 
-Steps 2-4 must precede 5 because Hugo copies `static/**` into the destination and
-the static tree must already be final. Step 9 must be last because it is the only
-step that can say the build was wrong.
+Steps 2-6 must precede Hugo because Hugo copies `static/**` into the destination
+and the static tree must already be final. The provenance guard must be last
+because it is the only step that can say the build was wrong.
 
 IDEMPOTENCE
 -----------
@@ -303,14 +305,74 @@ def main(argv: list[str] | None = None) -> int:
                     "source": "data/dist/course/course.json.gz",
                     "bytes": course_dest.stat().st_size})
 
-    # 4 ── the vault download
+    # 4 ── /speak/ word list (Session 22 D1). Runs before Hugo only because
+    # the build is ordered that way; nothing under data/ is read at Hugo
+    # time (see the module docstring — touching site.Data makes Hugo
+    # unmarshal the whole data/ tree, including corpus.tar.gz, and fail).
+    rc, _ = run([sys.executable, "tools/emit/speakgen.py"], what="speakgen")
+    if rc != 0:
+        return rc
+    speak_src = ROOT / "data" / "dist" / "speak" / "speak.json.gz"
+    if not speak_src.is_file():
+        print("[build] FAIL — data/dist/speak/speak.json.gz absent after "
+              "speakgen; refusing to publish an empty /speak/", file=sys.stderr)
+        return 1
+    speak_dest = PUBLIC / "data" / "dist" / "speak" / "speak.json.gz"
+    speak_dest.parent.mkdir(parents=True, exist_ok=True)
+    safeio.write_verified(speak_dest, speak_src.read_bytes())
+    claimed.add(speak_dest.relative_to(PUBLIC).as_posix())
+    emitted.append({"path": speak_dest.relative_to(PUBLIC).as_posix(),
+                    "source": "data/dist/speak/speak.json.gz",
+                    "bytes": speak_dest.stat().st_size})
+    # The no-JS page is a complete HTML document; it must land in public/
+    # alongside Hugo's /speak/ output, so it is copied here, not via Hugo.
+    top100_src = ROOT / "work" / "speak" / "top100.html"
+    if not top100_src.is_file():
+        print("[build] FAIL — work/speak/top100.html absent after speakgen",
+              file=sys.stderr)
+        return 1
+    top100_dest = PUBLIC / "speak" / "top100.html"
+    top100_dest.parent.mkdir(parents=True, exist_ok=True)
+    safeio.write_verified(top100_dest, top100_src.read_bytes())
+    claimed.add(top100_dest.relative_to(PUBLIC).as_posix())
+    emitted.append({"path": top100_dest.relative_to(PUBLIC).as_posix(),
+                    "source": "work/speak/top100.html",
+                    "bytes": top100_dest.stat().st_size})
+
+    # 4b ── Anki decks (Session 22 D2). Generated from the same quiz and
+    # drill banks the site serves; downloadable, no server, no accounts.
+    # Emitted to work/anki/ (Hugo's data loader walks data/ and chokes on
+    # a binary .apkg); copied into public/downloads/anki/ here.
+    rc, _ = run([sys.executable, "tools/emit/ankigen.py"], what="ankigen")
+    if rc != 0:
+        return rc
+    anki_src_dir = ROOT / "work" / "anki"
+    if not anki_src_dir.is_dir():
+        print("[build] FAIL — work/anki/ absent after ankigen",
+              file=sys.stderr)
+        return 1
+    for name in ("vocab.apkg", "drill.apkg"):
+        src = anki_src_dir / name
+        if not src.is_file():
+            print(f"[build] FAIL — ankigen did not produce {name}",
+                  file=sys.stderr)
+            return 1
+        dest = PUBLIC / "downloads" / "anki" / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        safeio.write_verified(dest, src.read_bytes())
+        claimed.add(dest.relative_to(PUBLIC).as_posix())
+        emitted.append({"path": dest.relative_to(PUBLIC).as_posix(),
+                        "source": f"work/anki/{name}",
+                        "bytes": dest.stat().st_size})
+
+    # 5 ── the vault download
     rc, _ = run([sys.executable, "tools/emit/obsidian.py"], what="obsidian")
     if rc != 0:
         return rc
     if (PUBLIC / "downloads").is_dir():
         note("tools/emit/obsidian.py", sorted((PUBLIC / "downloads").rglob("*")))
 
-    # 5 ── Hugo
+    # 6 ── Hugo
     if args.skip_hugo:
         print("[build] --skip-hugo: no pages built")
     else:

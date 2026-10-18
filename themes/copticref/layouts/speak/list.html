@@ -1,0 +1,56 @@
+{{ define "main" }}
+<h1>Pronunciation practice</h1>
+{{ .Content }}
+
+<noscript id="speak-noscript">
+  <h2>Top 100 lemmas (by corpus frequency)</h2>
+  <p><strong>Recording needs JavaScript.</strong>The full list — the one
+  hundred most frequent lemmas across the six parsed works, with Bohairic,
+  Sahidic and Layton transliterations — is a static page:
+  <a href="/speak/top100.html">/speak/top100.html</a>. Study them with the
+  dictionary; come back with scripting on to record yourself.</p>
+</noscript>
+
+<p class="note" id="speak-banner">
+  This is a self-comparison tool, not a pronunciation score. Coptic has no
+  validated ASR. Listen to yourself against the transliteration and use
+  your ear.
+</p>
+
+<form id="speak-controls" aria-label="Speaking options">
+  <p>
+    <label for="speak-word">Word (frequency-ranked)</label>
+    <select id="speak-word" autocomplete="off"></select>
+  </p>
+  <p>
+    <label for="speak-scheme">Transliteration scheme</label>
+    <select id="speak-scheme" autocomplete="off">
+      <option value="bohairic" selected>Bohairic (default)</option>
+      <option value="sahidic">Sahidic</option>
+      <option value="layton">Layton</option>
+    </select>
+  </p>
+</form>
+
+<div id="speak-target" aria-live="polite">
+  <p id="speak-coptic" class="coptic speak-big"></p>
+  <p id="speak-translit" class="note"></p>
+  <p><a id="speak-dict-link" href="/dict/">Open in dictionary</a></p>
+</div>
+
+<p id="speak-status" class="note" role="status">Choose a word, then record.</p>
+
+<div id="speak-app">
+  <p>
+    <button id="speak-record" type="button">Record</button>
+    <button id="speak-play" type="button" disabled>Play my recording</button>
+  </p>
+  <p id="speak-feedback" class="note" role="status"></p>
+</div>
+
+<!-- ORDER IS LOAD-BEARING. fetch_json.js defines FetchJson, translit.js
+     defines translitDisplay, and speak.js calls both. -->
+<script src="{{ "js/fetch_json.js" | relURL }}" defer></script>
+<script src="{{ "js/translit.js" | relURL }}" defer></script>
+<script src="{{ "js/speak.js" | relURL }}" defer></script>
+{{ end }}

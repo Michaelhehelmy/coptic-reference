@@ -64,7 +64,7 @@ CONTENT = """\
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   # script-src 'self' with NO 'unsafe-inline': every script on this site is a
   # file, including /js/sw-register.js. Keeping it that way is what lets this
   # policy stay tight; see tools/emit/headers.py docstring.
@@ -75,6 +75,13 @@ CONTENT = """\
   # policy without it blocks search entirely, in production, silently: the page
   # loads and the search box returns nothing. 'wasm-unsafe-eval' permits WASM
   # compilation only; it does NOT re-enable eval() or new Function().
+  #
+  # media-src 'self' blob: — Session 22 D1. /speak/ records with MediaRecorder
+  # (getUserMedia is a permissions API, not a CSP-governed fetch) and plays the
+  # result back from a blob: URL. Without blob: in media-src, default-src
+  # 'self' would block the <audio> element and playback would fail silently in
+  # every browser. 'self' stays so a future hosted audio file works too; blob:
+  # is scoped to media only and does not open script or connect.
 """
 
 

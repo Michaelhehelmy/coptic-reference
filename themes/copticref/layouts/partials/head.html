@@ -3,6 +3,10 @@
 <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title }}{{ end }}</title>
 <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
 <link rel="stylesheet" href="{{ "css/styles.css" | relURL }}">
+<!-- Session 22 D3: every page was losing 4 best-practices points for a
+     missing favicon. static/favicon.ico is a Coptic cross, 16+32 entries,
+     drawn by tools/emit/favicon.py (geometry, no font dependency). -->
+<link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="32x32" type="image/x-icon">
 {{- range .AlternativeOutputFormats }}
 <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink | safeURL }}" title="{{ .Name }}">
 {{- end }}
