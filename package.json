@@ -12,10 +12,12 @@
     "validate": ".venv/bin/python tools/validate/collation_guard.py"
   },
   "devDependencies": {
+    "acorn": "8.19.0",
     "hugo-bin": "0.148.1",
     "pagefind": "1.5.2"
   },
   "comments": {
+    "acorn": "PINNED EXACTLY, no caret. Session 22 D0: no_object_object_guard parses every published JS file with acorn and walks the AST. The guard's verdict must not float with a parser upgrade that changes node shapes.",
     "pagefind": "PINNED EXACTLY, no caret. v4 §2.2: Pagefind runs in ONE pass via createIndex/addDirectory/addCustomRecord/writeFiles. Its output must be byte-reproducible across bakes, which a floating version would break.",
     "hugo-bin": "Pinned so local and Cloudflare Pages builds agree. Cloudflare does NOT install Hugo; the build command fetches the extended .deb at the pinned version (v4 §5.3).",
     "no-deps": "There are no runtime dependencies. Everything served to a reader is static HTML/CSS/JS/JSON. The Worker in workers/suggest/ is the only runtime component in the project and has zero dependencies."
