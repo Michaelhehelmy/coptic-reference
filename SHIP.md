@@ -11,7 +11,7 @@ this project — see “How to deploy updates”.**
 |---|---|
 | Preview | `https://session-14.coptic-reference.pages.dev` (Session 14 build) |
 | **Production** | **`https://coptic-reference.pages.dev`** — Session 23 direct upload (`08459596`), post-deploy checks pass; production was stale (Session 15 content, 404s for Sessions 16–22 routes) until Session 23 D0 |
-| Repository | 29 commits on `master` (through Session 23), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
+| Repository | `master` through Session 23 (this session's code: deck fix `1d2f47b`, rules + packet `5d76fdf`, walk fixes `02f751b`, plus this session's docs commits), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
 | Tests | 454 passed, 22 skipped, 1 xfailed |
 | Guards | all pass; the guards that guard the build run inside `tools/build.py`, the rest in `pytest tools/tests/` |
 | Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 959 quiz + 2,589 cloze cards downloadable (Session 23 replaced the 300-card `vocab.apkg` subset) · Session 23: `/expert-review-packet/`, every open expert verdict in one place |
