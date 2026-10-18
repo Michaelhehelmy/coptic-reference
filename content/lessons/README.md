@@ -1,3 +1,7 @@
+---
+title: "Structured course plan — Session 19 D3"
+---
+
 # Structured course plan — Session 19 D3
 
 Fifteen lessons, beginner to intermediate, Sahidic narrative first (Ruth),

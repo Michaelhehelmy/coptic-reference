@@ -4,6 +4,6 @@
 {{ if .Content }}
   {{ .Pages }}
 {{ else }}
-<ul>{{ range .Site.RegularPages }}{{ if ne .Section "" }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}{{ end }}</ul>
+<ul>{{ range .Pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}</ul>
 {{ end }}
 {{ end }}
