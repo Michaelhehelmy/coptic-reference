@@ -41,9 +41,10 @@ The document a new maintainer reads first. Written at the end of Session 15.
   score, no upload: the banner says so and a test asserts the feedback
   area never renders a score. No-JS visitors get `/speak/top100.html`, a
   static table.
-- **`/anki/`** — `vocab.apkg` (300 cards from the quiz banks) and
+- **`/anki/`** — `quiz.apkg` (all 959 quiz-bank items across 19 banks) and
   `drill.apkg` (all 2,589 cloze items), generated at build time from the
-  same banks the site serves, downloadable with no account.
+  same banks the site serves, downloadable with no account. (Session 23 D1
+  replaced the Session 22 `vocab.apkg` 300-card subset.)
 - **Offline** — the service worker registers, precaches exactly 8 declared
   entries, and serves the dictionary with the network off.
 - **CSP** — `script-src 'self' 'wasm-unsafe-eval'`, `media-src 'self'

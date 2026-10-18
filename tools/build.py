@@ -351,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
         print("[build] FAIL — work/anki/ absent after ankigen",
               file=sys.stderr)
         return 1
-    for name in ("vocab.apkg", "drill.apkg"):
+    for name in ("quiz.apkg", "drill.apkg"):
         src = anki_src_dir / name
         if not src.is_file():
             print(f"[build] FAIL — ankigen did not produce {name}",

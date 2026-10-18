@@ -13,7 +13,7 @@ Anki and keep them for years, offline, under your own collection.
 
 ## Download
 
-- **[vocab.apkg](/downloads/anki/vocab.apkg)** — 300 vocabulary cards (about 200 KB)
+- **[quiz.apkg](/downloads/anki/quiz.apkg)** — 959 quiz cards (about 660 KB)
 - **[drill.apkg](/downloads/anki/drill.apkg)** — 2,589 cloze cards (about 3.4 MB)
 
 In Anki: File → Import, choose the file, keep the default deck
@@ -22,9 +22,11 @@ do not mix with collections you already keep.
 
 ## What is in each deck
 
-**Vocabulary (300 cards).** Every English↔Coptic quiz item, both directions,
-all three difficulties. The front is the prompt; the back is the correct
-choice plus the dictionary's own gloss of the answer's entry.
+**Quiz items (959 cards).** Every item in every published quiz bank: word
+pairs in both directions, transliteration, lemma and part-of-speech
+identification, dialect identification, and verse matching, across all three
+difficulties. The front is the prompt; the back is the correct choice plus
+the dictionary's own gloss of the answer's entry where one resolves.
 
 **Cloze drills (2,589 cards).** One card per drilled verse from the six
 parsed corpus works. The front is the verse with its content word blanked;

@@ -1,15 +1,18 @@
 # tools/tests/test_ankigen.py — the decks must be real Anki collections.
 #
-# Session 22 D2 / C4. The Playwright test proves the published routes serve
-# zip bytes; this file opens the collections themselves and checks what a
-# learner would actually receive: note counts, deck names, the attribution
-# field, and stable guids. Uses stdlib zipfile + sqlite3 (Anki's collection
-# is a sqlite database), so it does not depend on genanki at test time even
-# though the emitter does.
+# Session 22 D2 / C4; Session 23 D1 extended the quiz deck from the 300-card
+# English<->Coptic subset to ALL 959 quiz items. The Playwright test proves
+# the published routes serve zip bytes; this file opens the collections
+# themselves and checks what a learner would actually receive: note counts
+# equal to the bank totals, deck names, the attribution field, and stable
+# guids. Uses stdlib zipfile + sqlite3 (Anki's collection is a sqlite
+# database), so it does not depend on genanki at test time even though the
+# emitter does.
 #
 # LICENCE: project code, Apache-2.0.
 from __future__ import annotations
 
+import gzip
 import json
 import pathlib
 import sqlite3
@@ -21,12 +24,21 @@ import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ANKI = ROOT / "work" / "anki"
+QUIZ_DIR = ROOT / "data" / "dist" / "quiz"
 
 pytestmark = pytest.mark.skipif(
     not ANKI.is_dir(), reason="no work/anki — run tools/emit/ankigen.py")
 
-VOCAB_DECK_ID = 2059400110
+QUIZ_DECK_ID = 2059400110
 DRILL_DECK_ID = 2059400111
+
+
+def _total_quiz_items() -> int:
+    """The invariant: the deck carries every item in every published bank."""
+    total = 0
+    for p in sorted(QUIZ_DIR.glob("*.json.gz")):
+        total += len(json.loads(gzip.decompress(p.read_bytes())))
+    return total
 
 
 def _open_collection(name: str) -> tuple[sqlite3.Connection, pathlib.Path]:
@@ -41,7 +53,7 @@ def _open_collection(name: str) -> tuple[sqlite3.Connection, pathlib.Path]:
 
 
 @pytest.mark.parametrize("name,deck_id,deck_name,min_notes", [
-    ("vocab.apkg", VOCAB_DECK_ID, "Coptic Reference::Vocabulary", 250),
+    ("quiz.apkg", QUIZ_DECK_ID, "Coptic Reference::Quiz Items", 950),
     ("drill.apkg", DRILL_DECK_ID, "Coptic Reference::Cloze Drills", 2000),
 ])
 def test_deck_opens_with_the_expected_notes(name, deck_id, deck_name, min_notes):
@@ -61,11 +73,28 @@ def test_deck_opens_with_the_expected_notes(name, deck_id, deck_name, min_notes)
         tmpdir.rmdir()
 
 
-def test_vocab_cards_carry_the_gloss_and_attribution():
-    conn, tmpdir = _open_collection("vocab.apkg")
+def test_quiz_deck_carries_every_bank_item():
+    """Session 23 D1: no silent subset. notes == sum of all bank items."""
+    conn, tmpdir = _open_collection("quiz.apkg")
+    try:
+        n = conn.execute("SELECT COUNT(*) FROM notes").fetchone()[0]
+        expected = _total_quiz_items()
+        assert expected >= 959, f"banks shrank to {expected} items"
+        assert n == expected, (
+            f"quiz deck has {n} notes, banks have {expected} items — "
+            f"the deck is a subset again")
+    finally:
+        conn.close()
+        for p in sorted(tmpdir.rglob("*"), reverse=True):
+            p.unlink(missing_ok=True)
+        tmpdir.rmdir()
+
+
+def test_quiz_cards_carry_the_attribution():
+    conn, tmpdir = _open_collection("quiz.apkg")
     try:
         row = conn.execute("SELECT flds FROM notes LIMIT 1").fetchone()
-        assert row, "vocab deck has no notes"
+        assert row, "quiz deck has no notes"
         fields = row[0].split("\x1f")
         assert len(fields) == 3, f"expected 3 fields, got {len(fields)}"
         assert "CC BY-SA 4.0" in fields[2], "attribution missing from Notes"
@@ -93,8 +122,8 @@ def test_cloze_cards_carry_a_blank_and_a_dictionary_link():
         tmpdir.rmdir()
 
 
-def test_guids_are_unique_across_the_vocab_deck():
-    conn, tmpdir = _open_collection("vocab.apkg")
+def test_guids_are_unique_across_the_quiz_deck():
+    conn, tmpdir = _open_collection("quiz.apkg")
     try:
         guids = [r[0] for r in conn.execute("SELECT guid FROM notes")]
         assert len(guids) == len(set(guids)), "duplicate guids — cards would merge in Anki"

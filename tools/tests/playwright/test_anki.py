@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
     reason="no published /anki/ — run tools/build.py first")
 
 
-DECKS = ("vocab.apkg", "drill.apkg")
+DECKS = ("quiz.apkg", "drill.apkg")
 
 
 def test_anki_page_lists_both_decks_and_the_licence(browser, server):
