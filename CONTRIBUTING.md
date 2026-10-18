@@ -665,3 +665,49 @@ matter `unlisted_forms` with a reason, never silently unresolvable. And
 grammar assertions — anything about how the language works, as opposed to
 what a word means — go in `content/GRAMMAR_CLAIMS.md` for a reviewer, with
 the lesson marked `grammar_claims_verified: false` until then.
+
+
+## Rule 15 — a template references data by explicit path, not by enumerating a directory
+
+A template references data by explicit path, not by enumerating a
+directory. If a template needs data/dist/dict/index.json, it reads that
+file, not data/. If a build system enumerates a data root, isolate unrelated
+file types from that root. A template that assumes data/ contains only small
+files is a bug waiting for the first large file.
+
+Why: Session 22's E35 — referencing site.Data in a Hugo template made Hugo
+unmarshal everything under data/, including corpus.tar.gz. The tarball is
+not UTF-8, unmarshalling crashed the build, and the fix was to generate the
+page as a standalone static file. The failure mode was a template whose data
+source had a larger scope than the template assumed. The class applies to
+Hugo site.Data, Jekyll site.data, Next.js getStaticProps returning a
+directory, and any templating engine with an implicit data source.
+
+The correct shape: data/dist/dict/index.json is a file; data/dist is a
+directory containing files, some of which are not data for templates. A
+template that wants one file names it. A template that names a directory is
+asking the build system to enumerate, and the build system will enumerate
+everything.
+
+
+## Rule 16 — shipped means live on the public URL and verified there
+
+A feature is shipped when it is live on the public URL and verified there.
+Preview URLs, local builds, and pushes to the repository are staging, not
+shipping. A push to the repository is not a deploy; a deploy is a deploy.
+
+Why: Session 15 shipped production via direct `wrangler pages deploy`
+because there was no git remote. Sessions 16–22 built seven major features
+— quizzes, drills, course, transliterator, writing, pronunciation, Anki —
+pushed to origin/master, and did not deploy. If a learner loaded the public
+URL between Sessions 15 and 23, they saw the Session 15 state. Every session
+reported "pushed" as if that were the finish line. It was not.
+
+The correct shape: after every session that changes user-facing behavior,
+either promote to production and run the post-deploy checklist, or state
+explicitly in the receipt "not deployed; the public URL is stale." Silence
+on the deployment state is not the same as "shipped."
+
+The failure mode is subtle: the code is correct, the tests pass, the push
+succeeds, and the site is old. Nothing fails. The gap is invisible until
+someone checks the URL.
