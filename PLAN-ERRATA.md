@@ -574,3 +574,24 @@ local-versus-remote manifest comparison fails for a reason that is
 entirely cache. Verify with `cf-cache-status`/`age` in the response, or
 fetch the same path from the deployment URL, before believing a
 discrepancy — and before claiming an agreement.
+
+**Correction, Session 24.** The closing claim above — "production still
+serves the direct upload (`08459596`'s content) — the empties never
+replaced it, which is why the Session 15 build survived seven sessions
+of pushes" — was true when written and is now false. Measured Session
+24: the apex origin was serving an **empty git build**
+(`fb32acf5`, source `604ffd4`, Environment Production: 404 for `/`,
+for `/js/course.js`, for `/BUILD-MANIFEST.json`), masked by the very
+edge cache this entry describes — uncached paths (`/lessons/05/`,
+`/favicon.ico`, `/keys/`, …) answered bare 404 while pages fetched
+during Session 23 still answered 200 from HIT entries with `age` past
+43,000 s. Sometime after Session 23's final upload and its own push,
+the empties took the alias; what changed in the dashboard to allow
+that after seven sessions of not allowing it cannot be read from the
+CLI (`wrangler pages project` has no `get`). The session's own
+direct upload (`fe421e32`) took the alias back — `/lessons/05/`
+answered 200 from origin immediately after — so the durable rule
+gains one clause: **the deploy is the last act**, because a push
+after a deploy can move the alias onto a new empty build. Full
+measurement and Michael's dashboard checklist: DECISIONS Session 24
+D4.

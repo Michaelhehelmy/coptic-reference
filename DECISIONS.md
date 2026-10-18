@@ -3102,3 +3102,203 @@ missing path") was narrowed to the measured split in SHIP.md (quirks +
 COVERAGE's D0 row. The dictated rule text itself is untouched — its
 substance (only response content proves a route) holds under all three
 behaviors, and the soft-404 on deployment URLs reproduces it exactly.
+
+## Session 24
+
+### D0: Rules 15, 16, 17 present and verbatim
+
+Grep receipt, both houses: HANDOFF.md §8a carries `**Rule 15/16/17. …**`
+at lines 692, 712, 733 (same shape as Rules 1–14); CONTRIBUTING.md
+carries `## Rule 15 — …`, `## Rule 16 — …`, `## Rule 17 — …` at lines
+670, 693, 716, continuous with 1–14. Whitespace-normalized text is
+identical between the two, modulo CONTRIBUTING's house prefix (`## Rule
+N —` versus HANDOFF's inline `**Rule N. …**`) — the same modulo that
+Rules 1–16 already use. One recorded discrepancy: Rule 17's Why cites
+the apex answering a missing path with a SPA-fallback 200; today's
+apex answers a bare 404 (Session 23 measurements, re-confirmed below).
+The dictated text is kept verbatim anyway — the rule's substance
+(only response content proves a route) holds under every hostname
+behavior this project has measured.
+
+### D1: HTML was held at the edge for up to seven days; now it is 60 seconds
+
+Before this session `public/_headers` set explicit Cache-Control only
+on `/data/*`, `/pagefind/*`, `/js/*`, `/css/*` and `/sw.js`. HTML had
+no rule at all, so the edge applied its default: `s-maxage=604800`,
+observed live with `age` climbing past 43,000 s on pages that had not
+changed in twelve hours. A deploy could not become visible on a
+previously fetched page for up to a week — which is exactly the
+staleness E36 spent three paragraphs explaining around.
+
+Fix, in `tools/emit/headers.py` only (Rule 5 — `public/` is a build
+product):
+
+```
+/       *.html   */   →  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+/fonts/*                  →  Cache-Control: public, max-age=31536000, immutable
+```
+
+The three HTML rules cover the root, explicit `.html` URLs, and every
+pretty-URL page (the splat in `/*/` is greedy across `/`, so one rule
+covers all depths). They are deliberately disjoint from the asset
+rules: a request that matched two Cache-Control rules would
+comma-join both values (Cloudflare's documented behavior for
+duplicated header names from matching rules) and corrupt both
+policies. Assets cannot match them — they don't end in `/` and aren't
+`.html`. `/fonts/*` ships before any `.woff2` exists (today's theme
+uses the system stack) so a future font is immutable on day one.
+
+Receipts: rebuild guard PASSED (261 files, 14,191,428 B); the emitted
+`public/_headers` diff is exactly the four new rules; preview
+deployment `244744d1.coptic-reference.pages.dev` serves `/` and
+`/dict/` with `public, max-age=0, s-maxage=60, must-revalidate`, and
+`/data/course/course.json.gz`, `/pagefind/pagefind.js`,
+`/js/course.js` with `max-age=31536000, immutable`. One residual
+class: extensionless URLs without a trailing slash — only
+`/read-csv`, reached via Pages' own `.html` → extensionless 308 —
+match no cache rule and receive Pages' HTML default
+(`max-age=0, must-revalidate`). Always fresh, no edge hold; left
+alone rather than special-cased.
+
+### D2: purge runbook where the deploy runbook already lives
+
+DEPLOY.md §5 now shows the emitted rule skeleton (the old sample had
+been missing `/js/`, `/css/` and every cache rule added since Session
+11) and points at the emitter for rationale. New §6 is the purge
+procedure: `$CF_API_TOKEN` and `$ZONE_ID` as placeholders, a
+specific-files `purge_cache` call (safer than `purge_everything`), and
+the two cases that actually need one — a custom domain attached later
+(`*.pages.dev` belongs to Cloudflare and cannot be purged from a
+customer account; the 60-second HTML TTL covers that hostname
+anyway), and a URL that must die inside the TTL window. The token
+lives in an env var or a password manager, never in the repository
+(Rule 15). POST_DEPLOY_CHECKLIST.md's `URL` is now the immutable
+deployment hostname wrangler prints, not the project alias and not
+the apex — the deployment URL serves `max-age=0, must-revalidate` and
+therefore always reflects the upload, while the apex can serve
+edge-cached HTML for days and, as D4 measured this session, can serve
+an empty origin underneath that cache.
+
+### D3: 959 is the real count; nothing to regenerate
+
+The open question was whether Session 22's `vocab.apkg` had shipped
+300 of the 959 quiz items (subset) or whether 959 was the inflated
+number (in which case decks would need regenerating). Settled by
+opening both decks with Python `zipfile` + `sqlite3` (no sqlite3 CLI
+on this machine): `quiz.apkg` — 959 notes, 959 cards, deck `Coptic
+Reference::Quiz Items`, 676,058 B; `drill.apkg` — 2,589 notes, 2,589
+cards, 3,514,586 B. The receipt was ambiguous, not the data: 959 is
+the whole corpus of quiz items and already matched what `/anki/`
+links to. The page itself already said 959 in both places (checked
+source and built HTML; the literal `300` appears nowhere), so no
+content change was needed and no deck was touched.
+
+### D4: the empties took the production alias — measured, rescued, checklist for Michael
+
+New facts, all measured today:
+
+- `wrangler pages project list` shows the project (Git Provider: Yes)
+  but exposes no build settings; `wrangler pages project` offers only
+  `list`, `create`, `delete` — there is **no `get`**. The build
+  command, output directory, root, production branch and Node version
+  are dashboard-only, and so is the build log. From this machine the
+  configuration can be neither read nor fixed.
+- Git deployment `fb32acf5` (source `604ffd4`, Environment
+  Production, 13 minutes old at measurement time) is empty: 404 for
+  `/`, for `/js/course.js`, for `/BUILD-MANIFEST.json`.
+- The apex origin was serving that emptiness underneath the edge
+  cache. Uncached real paths — `/lessons/05/`, `/lessons/12/`,
+  `/js/course.js`, `/favicon.ico`, `/keys/`, `/css/`,
+  `/read-csv.html` — answered with bare 404s, while every page
+  fetched during Session 23's D0–D7 window still answered 200 from
+  HIT entries (age 41–43k s, `s-maxage=604800`). The site looked
+  half-alive: cached pages rendered, their never-fetched
+  subresources and any new visitor's URL did not.
+
+This overturns Session 23 D8's closing observation ("the empties
+never replaced it, which is why the Session 15 build survived seven
+sessions of pushes"). They did replace it — after Session 23's final
+upload `08459596` and that session's own push, production has been
+serving an empty git build masked by at most seven days of edge
+cache. E36 carries the correction. What changed to make promoting
+empties possible after seven sessions of not doing so cannot be
+determined from the CLI; the plausible levers (build command fixed
+partially, output directory changed, production branch setting) all
+live in the dashboard.
+
+Rescue: this session's direct upload `fe421e32` moved the alias back
+to a full origin — re-probed immediately after, `/lessons/05/` (never
+cached, so origin-served) answered 200 with the new
+`s-maxage=60` header.
+
+Checklist for Michael, until the configuration is repaired:
+
+1. Dashboard → coptic-reference → Settings → Builds & deployments.
+2. Build command: paste DEPLOY.md §3's one-liner verbatim (Hugo
+   0.128.0 + `npm ci` + `python3 tools/build.py` — not
+   `npm run build`).
+3. Build output directory: `public`. Root directory: `/` (empty =
+   repo root). Production branch: `master`. Node 22.
+   `HUGO_VERSION=0.128.0` optional; `PAGEFIND_BIN` must stay unset.
+4. Retry the latest deployment and open the BUILD LOG. Expect Hugo
+   and Pagefind steps, ending with `public/: 261 files, 14,191,428 B
+   emitted — guard PASSED`. A log that says success while the site
+   404s means the output directory does not point at `public/`. A
+   log that fails mid-way names the broken step.
+5. Until that passes: **releases are wrangler uploads only, and the
+   deploy must be the last act of a session** — a push after a
+   deploy creates a new empty git deployment that can take the
+   production alias, which is precisely how this session found
+   production.
+
+### D5: battery green with the cache fix in tree
+
+`pytest tools/tests` — **454 passed, 22 skipped, 1 xfailed in
+105.60 s**. `tools/build.py` ran twice this session (preview bake and
+final bake), guard PASSED both times.
+
+### D6: production deploy `fe421e32`, checklist against the deployment hostname
+
+Final rebuild (261 files, 14,191,428 B, guard PASSED), then
+`wrangler pages deploy public --project-name=coptic-reference
+--branch=master` → deployment `fe421e32.coptic-reference.pages.dev`.
+Checklist run against that hostname, not the apex:
+
+| # | Item | Result |
+|---|---|---|
+| 1 | Manifest | remote == local: 285 emitted, 14,191,428 B, `collation_hash b7b49af6e144ef87`, `generated 2026-10-18T21:30:05Z` |
+| 2 | Routes | 21/21 ✓ (200 + exact `<title>` + route-unique marker); negative control `/no-such-route/` ✗ `code=200 … marker_ok=0` (deployment-host soft-404, as documented) |
+| 3 | Service worker | 1 registration in Chromium against the deployment URL |
+| 5 | Pagefind | `ⲧⲉⲛⲟⲩ` → 2 hits on the deployment URL |
+| 6 | Headers | `/` → `public, max-age=0, s-maxage=60, must-revalidate` + CSP + nosniff; `/sw.js` → `max-age=0` + `service-worker-allowed`; `/data/dist/dict/index.json.gz` → immutable + CORS |
+| 7 | gzip | 281,355 B, `gzip compressed data`, valid |
+| 8 | Dictionary | `#count-all` = 11,369 entries, zero console errors/warnings |
+| 10 | Reproducibility | manifest `generated` derived from inputs; remote matches local bake byte-for-byte |
+
+Decks byte-exact against `public/downloads/anki/` (676,058 /
+3,514,586 B). Apex re-probe immediately after the deploy:
+`/lessons/05/` **200** with `s-maxage=60` (was a bare 404 twenty
+minutes earlier — the origin is full again), `/dict/` 200 with the
+new policy, `/BUILD-MANIFEST.json` 200. Old edge entries for pages
+fetched in Session 23 remain valid copies of the same content until
+their TTL or a purge retires them; that is the documented behavior,
+not a discrepancy.
+
+### D7: two commits, pushed
+
+`fix(headers): 60-second HTML cache ceiling, purge runbook,
+deployment-URL checklist (Session 24 D1/D2)` — `4ad2c99`,
+`tools/emit/headers.py`, DEPLOY.md, POST_DEPLOY_CHECKLIST.md. Then the
+docs commit carrying D3–D8 (this file, PLAN-ERRATA E36 correction,
+COVERAGE, SHIP, README, HANDOFF §5). Pushed, 0 ahead. Commits unsigned
+per the standing Session 19 D2 policy.
+
+### D8: docs
+
+DECISIONS (above), PLAN-ERRATA E36 correction (empties now measured
+on the alias; "survived seven sessions" overturned with the new
+timeline), COVERAGE Session 24 rows, SHIP.md (status table, deploy
+section, third quirk, Production verification Session 24, STATE OF
+THE PROJECT), README Session 24 status, HANDOFF §5 (deploy-is-last
+rule). DEPLOY.md and POST_DEPLOY_CHECKLIST.md were D1/D2's deliverable
+and are part of this receipt.

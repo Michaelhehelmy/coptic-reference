@@ -221,9 +221,17 @@ export WRANGLER_SEND_METRICS=false        # telemetry makes the deploy fail
 npx wrangler pages deploy public --project-name coptic-reference --branch master
 ```
 
-Then run `POST_DEPLOY_CHECKLIST.md` against the public URL. Rebuild before
-deploying if code or content changed — `wrangler` uploads `public/`, it does
-not run the bake. `git push` is for history only; it is not a release step.
+Then run `POST_DEPLOY_CHECKLIST.md` against **the deployment URL wrangler
+prints** (the checklist targets it deliberately — the apex can serve
+edge-cached HTML for days, and Session 24 measured it serving an empty
+origin underneath that cache; the deployment hostname always reflects
+the upload). Rebuild before deploying if code or content changed —
+`wrangler` uploads `public/`, it does not run the bake. `git push` is
+for history only; it is not a release step — and **the deploy must be
+the last act**: a push after a deploy creates a fresh empty git
+deployment that can take the production alias away from what you just
+shipped (Session 24 D4). Cache invalidation and the purge API:
+DEPLOY.md §6.
 
 **Roll back:**
 

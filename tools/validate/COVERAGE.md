@@ -585,3 +585,37 @@ the difference because every test server so far has served `.gz` undecoded.
 - **Anki import on a real device** (carried from Session 22). Decks are
   verified as Anki collections (zip + sqlite, note counts, guid
   uniqueness), not opened in the Anki app.
+
+## Session 24 — coverage
+
+| Task | Result |
+|---|---|
+| D0 | Rules 15/16/17 grep receipt — HANDOFF §8a (692/712/733) + CONTRIBUTING (670/693/716), whitespace-normalized identical mod house prefix; Rule 17's apex-fallback Why doesn't reproduce today, text kept verbatim as dictated |
+| D1 | HTML cache ceiling — emitter-only change (`tools/emit/headers.py`): `/`, `/*.html`, `/*/` → `max-age=0, s-maxage=60, must-revalidate` + `/fonts/*` immutable; preview `244744d1` receipts (HTML s-maxage=60; `.json.gz`/pagefind/`/js/*` immutable); disjoint from asset rules (CF comma-joins duplicate header names); extensionless `/read-csv` residual = Pages default, always fresh |
+| D2 | purge runbook DEPLOY.md §6 (`$CF_API_TOKEN`/`$ZONE_ID` placeholders, specific-files purge, pages.dev not purgeable → 60 s TTL covers it); checklist `URL` → deployment hostname with the empty-origin rationale |
+| D3 | 959 quiz / 2,589 drill confirmed via Python zipfile+sqlite3 (no sqlite3 CLI); no regeneration; `/anki/` page already said 959 (source + built HTML), literal `300` absent |
+| D4 | git-build investigation — CLI cannot read build config (no `wrangler pages project get`); `fb32acf5` empty (404 for `/`, `/js/course.js`, manifest); **apex origin measured empty under 12 h-old edge cache** (uncached paths bare 404, cached pages HIT); S23's "empties never replaced it" overturned; rescued by upload `fe421e32`; Michael checklist in DECISIONS D4 |
+| D5 | battery — **454 passed, 22 skipped, 1 xfailed, 105.60 s**; build guard PASSED ×2 |
+| D6 | production deploy `fe421e32` — checklist vs deployment hostname: manifest remote==local (285/14,191,428 B/hash `b7b49af6e144ef87`), 21/21 routes + negative control ✗, SW 1 registration, Pagefind ⲧⲉⲛⲟⲩ 2 hits, headers (s-maxage=60 + immutable + SW-Allowed), gzip valid, decks byte-exact, zero console errors; apex `/lessons/05/` 200 from origin afterwards (outage over) |
+| D7 | two commits pushed (headers+deploy docs; session docs), 0 ahead |
+| D8 | DECISIONS Session 24; PLAN-ERRATA E36 correction; this file; SHIP (status, deploy section, third quirk, S24 verification, STATE OF THE PROJECT); README S24 status; HANDOFF §5 deploy-is-last clause; DEPLOY.md §5/§6; POST_DEPLOY_CHECKLIST URL block |
+
+### Not covered
+
+- **Why the git-connected build started promoting empty deployments
+  after seven sessions of not doing so.** The levers (build command,
+  output directory, production branch, Node version) are
+  dashboard-side; the CLI has no `project get` and no build-log
+  access. Michael's checklist is in DECISIONS Session 24 D4. What is
+  covered: the symptom is measured, the alias was restored by direct
+  upload, and the release procedure no longer depends on the git
+  build at all.
+- **Edge-cache behavior after the 60-second TTL** (does the CDN
+  drop the entry silently, or revalidate conditionally). The header
+  contract is verified both sides; long-run TTL expiry was not
+  aged out during the session. The purge runbook (DEPLOY.md §6) is
+  the escape hatch either way.
+- **Lighthouse this session.** No JS, CSS, content or CSP change —
+  headers and docs only; Session 22's numbers stand.
+- **Anki import on a real device** (carried). Decks verified as
+  collections, not opened in the Anki app.

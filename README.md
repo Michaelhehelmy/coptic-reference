@@ -479,6 +479,38 @@ If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
 
+## Session 24 status
+
+**HTML is visible within a minute of a deploy again — and production,
+which had been secretly dead, is not.**
+
+- The apex had been serving an **empty git build** under up to a week
+  of edge cache: uncached paths (`/lessons/05/`, `/js/course.js`,
+  `/favicon.ico`, …) answered bare 404 while every page fetched in the
+  previous twelve hours still answered 200 from cache. Session 23's
+  closing note ("the empties never replaced it") was true then and
+  false now; measured, corrected in PLAN-ERRATA E36, rescued by direct
+  upload `fe421e32` (`/lessons/05/` → 200 from origin immediately
+  after). The git build itself remains broken and is Michael's
+  dashboard fix (DECISIONS Session 24 D4) — until then the deploy
+  command is the only release path and **must be the last act** of a
+  session, because a push after a deploy can take the alias back.
+- HTML cache policy fixed at the source: `_headers` (emitted by
+  `tools/emit/headers.py`) now sets
+  `max-age=0, s-maxage=60, must-revalidate` on `/`, `*.html` and every
+  trailing-slash page — the edge held HTML for up to seven days before
+  (`s-maxage=604800` observed). Assets stay immutable. A purge
+  runbook (custom domains, API token placeholder) is DEPLOY.md §6, and
+  POST_DEPLOY_CHECKLIST now targets the immutable deployment hostname
+  instead of the apex.
+- Anki counts settled: `quiz.apkg` = **959** notes (the whole corpus of
+  quiz items — Session 22's 300-card deck was the subset that got
+  replaced in Session 23), `drill.apkg` = **2,589**; both opened via
+  sqlite, `/anki/` already linked the right numbers, nothing
+  regenerated.
+- Battery green with everything above in tree: 454 passed, 22 skipped,
+  1 xfailed.
+
 ## Session 23 status
 
 **Production tells the truth again — the Anki deck is the whole corpus of
