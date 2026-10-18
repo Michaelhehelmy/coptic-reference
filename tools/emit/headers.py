@@ -60,6 +60,33 @@ CONTENT = """\
   # worker registered at /sw.js cannot control the scope "/", and offline mode
   # silently does nothing on first load.
 
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  # Session 24 D1. No .woff2 ships today (the theme falls back to system
+  # fonts), but the rule is here so a future font is immutable on day one
+  # instead of after its first stale-cache incident.
+
+/
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+  # Session 24 D1 (Fix 1). Before this, HTML had no explicit rule and the
+  # edge held it for up to a week (s-maxage=604800 observed), so a deploy
+  # stayed invisible on cached pages for days. Now: the browser revalidates
+  # every load (max-age=0, must-revalidate) and the edge revalidates at most
+  # every 60 seconds — a deploy is visible within a minute instead of a week.
+
+/*.html
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+  # Explicit .html URLs (e.g. /read-csv.html).
+
+/*/
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+  # Every pretty-URL HTML page (/dict/, /lessons/05/, /corpus/sahidic_ruth/…):
+  # the single splat is greedy across "/" so one rule covers all depths. It
+  # does NOT match "/" (handled above) and does NOT match asset files — they
+  # don't end in "/", they aren't .html — so no request can match two
+  # Cache-Control rules. That matters because Cloudflare joins values when a
+  # header is set twice by matching rules, which would corrupt both policies.
+
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

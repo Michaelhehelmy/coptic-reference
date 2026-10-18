@@ -137,10 +137,11 @@ cannot reach production unnoticed.
 
 ## 5. Headers
 
-**No action needed.** `public/_headers` is now emitted by `tools/build.py` via
-`tools/emit/headers.py`, because `public/` is deleted on every build (Rule 5) and
-a hand-placed copy would be destroyed by the next one — which is exactly what
-Session 11's version of this section told you to do. Its content:
+**No action needed.** `public/_headers` is emitted by `tools/build.py` via
+`tools/emit/headers.py`, because `public/` is deleted on every build (Rule 5)
+and a hand-placed copy would be destroyed by the next one. The emitted file is
+the truth; its rationale lives as comments in `tools/emit/headers.py`. The rule
+skeleton it currently emits:
 
 ```
 /data/*
@@ -150,15 +151,45 @@ Session 11's version of this section told you to do. Its content:
 /pagefind/*
   Cache-Control: public, max-age=31536000, immutable
 
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /sw.js
   Cache-Control: public, max-age=0
   Service-Worker-Allowed: /
 
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+
+/*/
+  Cache-Control: public, max-age=0, s-maxage=60, must-revalidate
+
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'
+  X-Frame-Options: DENY
+  Content-Security-Policy: …full policy in the emitter…
 ```
+
+The three HTML rules (root, `*.html`, and any path ending in `/`) are Session
+24's fix for the week-long HTML hold: the browser revalidates every load
+(`max-age=0, must-revalidate`) and the edge revalidates at most every 60
+seconds (`s-maxage=60`), so a deploy is visible on cached pages within a minute
+instead of up to seven days. They are deliberately non-overlapping with the
+immutable asset rules, because Cloudflare comma-joins values when two matching
+rules set the same header. One residual class: extensionless URLs without a
+trailing slash (only `/read-csv`, reached via Pages' own `.html` → extensionless
+redirect) match no cache rule and get Pages' HTML default
+(`max-age=0, must-revalidate`) — always fresh, no edge hold; harmless.
 
 `Service-Worker-Allowed: /` is **not** optional. Without it, a worker registered
 at `/sw.js` cannot control the scope `/`, and offline mode silently does nothing
@@ -178,7 +209,51 @@ the policy.** Either drop `style-src 'self'`'s companion inline styles too, or
 add a hash. Verify with the console check in the checklist before shipping —
 this is the one place where the project's own build and its CSP disagree.
 
-## 6. Then run `POST_DEPLOY_CHECKLIST.md`
+## 6. Cache invalidation (purge)
+
+Since Session 24 (§5), HTML carries `max-age=0, s-maxage=60, must-revalidate`:
+the edge revalidates at most every 60 seconds and a deploy is visible on HTML
+**without any purge**. Assets under `/js/`, `/css/`, `/data/`, `/pagefind/` and
+`/fonts/` are immutable by design and change only when the service worker's
+precache list changes with them, so a normal deploy needs no purge at all.
+
+A purge is needed in two cases:
+
+1. A **custom domain** is attached to the project later. The
+   `*.pages.dev` hostname belongs to Cloudflare and cannot be purged from a
+   customer account; a custom domain lives in your own zone and can be purged
+   immediately.
+2. A URL must go **right now** — a bad page was fetched within the last 60
+   seconds and waiting is unacceptable.
+
+Procedure — placeholders for Michael's values, nothing committable:
+
+```sh
+export CF_API_TOKEN="…token with Zone.Cache Purge, from the dashboard…"
+export ZONE_ID="…zone id of the custom domain…"
+# Purge specific URLs; safer than purge_everything, which drops every asset
+# cache on the zone for no benefit:
+curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CF_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "files": [
+      "https://example.org/dict/",
+      "https://example.org/lessons/"
+    ]
+  }'
+```
+
+Confirm `"success": true` in the response. The token lives only in an env var
+or a password manager — never in the repository, a commit, or a log
+(HANDOFF.md §8a Rule 15). On the `pages.dev` hostname there is no purge;
+rely on the 60-second HTML TTL (watch it expire with `curl -sI` + `age:`) and
+never try to force freshness by pushing a commit — **a push is not a deploy**
+(Rule 16), and while the git build configuration is broken (empty builds that
+can take the production alias; DECISIONS Session 24) a push after a deploy can
+actively unship it. The release path is `wrangler pages deploy`, always last.
+
+## 7. Then run `POST_DEPLOY_CHECKLIST.md`
 
 Do not treat the deploy as done until that checklist passes. The items in it
 check behaviour no build-time guard can: that the worker actually registers,

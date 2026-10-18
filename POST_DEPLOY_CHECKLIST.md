@@ -4,11 +4,21 @@ Prepared Session 11 (D5). Run this **after** the first deploy, against the live
 URL. Every item exists because a build-time guard cannot check it: guards verify
 files, and these verify behaviour (HANDOFF.md §8a Rule 7).
 
-Set `URL` to the deployed origin first:
+Set `URL` to the **deployment** URL first — the immutable
+`https://<deployment-id>.coptic-reference.pages.dev` that `wrangler pages
+deploy` prints at the end — not the branch alias, not the project alias and not
+the apex:
 
 ```sh
-URL=https://<your-project>.pages.dev
+URL=https://<deployment-id>.coptic-reference.pages.dev
 ```
+
+Why the deployment URL: it always reflects the upload you just made (it is
+served with `max-age=0, must-revalidate`), while the apex and the branch alias
+can serve edge-cached HTML for up to a week across deploys (PLAN-ERRATA E36) —
+and Session 24 measured the apex serving an **empty** origin underneath that
+cache (DECISIONS Session 24, git-build investigation). Checking the apex first
+would either pass a broken deploy or fail a good one.
 
 Record the result of each line. Anything marked ✗ is a blocker.
 
