@@ -8,18 +8,24 @@ harmless-looking field at a time.
 
 Four budgets, each with the reason it is the number it is:
 
-  data/dist       < 5 MB    the whole offline dictionary, the thing this budget exists for
+  data/dist       < 6 MB    the whole offline dictionary, the thing this budget exists for
   public/         < 20 MB   everything the browser downloads
   each shard      < 200 kB  so a client fetching ONE entry pulls one small file
   index.json.gz   < 500 kB  the lookup table, cached whole, so it wants to be small
 
-Measured now: data/dist 4.05 MB, public 0.99 MB, largest shard 145 KB,
-index.json.gz 180 KB. The shard and index budgets have ~2.8x headroom; the
-`data/dist` budget has 0.24 MB, which is the number to watch.
+Measured now: data/dist 5.29 MB, public 12.35 MB, largest shard 172 KB,
+index.json.gz 281 KB. The data/dist ceiling was 5 MB from Session 6, when the
+tree measured 4.05 MB; Session 25 raised it to 6 MB after adding the seventh
+corpus work (shenoute_eagerness: corpus.tar.gz 1.24 -> 1.47 MB, plus its
+corpus_refs in the shards) took the tree to 5.29 MB. That is exactly the
+distinction the docstring draws: this is the budget against CREEP, and a whole
+reviewed work is not creep — but the raise is a human decision recorded here so
+the next 0.24 MB of creep has to argue against a written number, not a silent
+one. The shard and index budgets have ~1.2x and ~1.8x headroom.
 
 `--report` prints the numbers without enforcing, for a status update.
 `--blame` names the largest contributors, which is what you want when it fails
-at 4.9 MB and you need to know why.
+and you need to know why.
 
 LICENCE: project code, Apache-2.0.
 """
@@ -32,7 +38,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 BUDGETS: dict[str, int] = {
-    "data/dist":        5 * 1024 * 1024,
+    # Session 25 D1: 5 MB -> 6 MB, justified in the module docstring. Raise
+    # only with a written reason, never to make a red run green.
+    "data/dist":        6 * 1024 * 1024,
     "public":          20 * 1024 * 1024,
     "shard_each":      200 * 1024,
     "index_json_gz":   500 * 1024,

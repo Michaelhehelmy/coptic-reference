@@ -80,10 +80,33 @@ def main(argv: list[str] | None = None) -> int:
             blank_lemma = [t.get("i") for t in ts if not (t.get("lemma") or "").strip()]
             blank_pos = [t.get("i") for t in ts if not (t.get("pos") or "").strip()]
 
-            for label, bad in (("coptic text", blank_coptic), ("english", blank_en)):
-                if bad:
-                    errors.append(f"{slug}: {len(bad)} verse(s) with no {label}, "
-                                  f"first: {bad[0]!r}")
+            # meta.json must carry the content hashes, or a text-only edit would
+            # not move the fingerprint and the rebuild guard would skip the work.
+            meta = json.loads(tf.extractfile(f"{slug}/meta.json").read().decode("utf-8"))
+
+            # Session 25 D1. Coptic is never allowed blank — that is the S4-C1
+            # bug this guard exists for. English is different: a work can
+            # honestly have segments with no aligned translation. shenoute_eagerness
+            # ships 587 of 1,078 segments with English and the rest the source's
+            # "…" placeholder (alignment = "partial"), so blank en is reported as
+            # INFO there, not as a failure. For "full" and "none" works the rule
+            # is unchanged: every verse must carry English, and a lost
+            # pending_translation still fails here. LIMIT, stated not hidden: on
+            # a partial work, an emitter bug that silently drops translations
+            # cannot be told apart from the source's own placeholders by a guard
+            # that reads only the shipped artefact.
+            alignment = str(meta.get("alignment") or "none")
+            if blank_coptic:
+                errors.append(f"{slug}: {len(blank_coptic)} verse(s) with no "
+                              f"coptic text, first: {blank_coptic[0]!r}")
+            if blank_en:
+                if alignment == "partial":
+                    print(f"[corpus_text_guard] {slug}: {len(blank_en)}/{len(vs)} "
+                          f"segment(s) with no English — expected: alignment is "
+                          f"partial (source placeholder)", file=sys.stderr)
+                else:
+                    errors.append(f"{slug}: {len(blank_en)} verse(s) with no "
+                                  f"english, first: {blank_en[0]!r}")
             for label, bad in (("surface form", blank_form), ("lemma", blank_lemma),
                                ("part of speech", blank_pos)):
                 if bad:
@@ -94,9 +117,6 @@ def main(argv: list[str] | None = None) -> int:
                 errors.append(f"{slug}: manifest says {expected.get('tokens')} tokens, "
                               f"file has {len(ts)}")
 
-            # meta.json must carry the content hashes, or a text-only edit would
-            # not move the fingerprint and the rebuild guard would skip the work.
-            meta = json.loads(tf.extractfile(f"{slug}/meta.json").read().decode("utf-8"))
             content = meta.get("content_sha256") or {}
             for name in ("text.json", "tokens.json"):
                 want = content.get(name)
@@ -124,7 +144,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(f"[corpus_text_guard] OK — {m.get('works_count', 0)} work(s), "
-          f"{verses} verses, {tokens} tokens; every verse has Coptic and English, "
+          f"{verses} verses, {tokens} tokens; every verse has Coptic, English "
+          f"is present wherever the work's alignment promises it, "
           f"every token has a form, lemma and POS; fingerprints cover content")
     return 0
 

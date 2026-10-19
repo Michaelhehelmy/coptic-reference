@@ -3,7 +3,7 @@ title: "Life of Isaac"
 slug: "life_of_isaac"
 work_slug: "life_of_isaac"
 dialect: "S"
-licence: "CC-BY-SA-4.0"
+licence: "CC-BY-4.0"
 weight: 10
 ---
 
@@ -13,7 +13,7 @@ weight: 10
 ## Provenance
 
 - **Dialect**: Sahidic (`S`)
-- **Licence**: CC-BY-SA-4.0
+- **Licence**: CC-BY-4.0
 - **Source**: Scriptorium_TT
 - **Pinned at**: `3ac067f1709a0012daf39ea8da2fac79980176a5`
 - **Alignment (upstream claim)**: `none`

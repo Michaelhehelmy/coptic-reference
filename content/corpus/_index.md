@@ -6,7 +6,7 @@ weight: 3
 
 # Corpus
 
-6 Coptic texts, parsed from pinned source files and fingerprinted. Every
+7 Coptic texts, parsed from pinned source files and fingerprinted. Every
 page below links to the same `.json.gz` bytes the dictionary's corpus counts were
 computed from, so what you read here and what the reader counts cannot drift.
 
@@ -21,6 +21,7 @@ entries link back to the works a word appears in.
 - [Life of Isaac](/corpus/life_of_isaac/) — Sahidic, 3 source files
 - [Martyrdom of Victor](/corpus/martyrdom_of_victor/) — Sahidic, 8 source files
 - [Ruth](/corpus/sahidic_ruth/) — Sahidic, 4 source files
+- [Eagerness for Martyrdom](/corpus/shenoute_eagerness/) — Sahidic, 17 source files
 
 ## What is not here
 

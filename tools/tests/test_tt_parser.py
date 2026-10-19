@@ -252,3 +252,84 @@ def test_licence_defaults_to_unknown_not_silent_pass(tmp_path):
     doc = parse_tt(p)
     assert doc.licence == "UNKNOWN"
     assert "_warn_licence" in doc.quality
+
+
+# ── 7. the Shenoute shape: no <verse_n>, <translation> is the boundary ──────
+# Session 25 D1. shenoute_eagerness's 17 _TT files carry ZERO <verse_n> and
+# ZERO <verse_vid>: the unit is the <translation> segment under a codex page
+# (<pb_xml_id>). Before this shape existed, Fix 4a refused every file at
+# 0 verses — the correct refusal for a shape the parser did not know.
+
+SHENOUTE_TT = (pathlib.Path(__file__).resolve().parents[2]
+               / "sources" / "corpus" / "shenoute_eagerness" / "GF17-18.tt")
+needs_shenoute = pytest.mark.skipif(
+    not SHENOUTE_TT.exists(),
+    reason="shenoute_eagerness not fetched; see tools/fetch/fetch_work.py")
+
+
+def fixture_segment(page: str, tokens: str, translation: str = "…") -> str:
+    return (
+        f'<pb_xml_id pb_xml_id="{page}">'
+        f'<translation translation="{translation}">'
+        f"{tokens}"
+        "</translation>"
+    )
+
+
+def test_segment_shape_opens_a_verse_per_translation(tmp_path):
+    body = (
+        fixture_segment("TESTPG", token("ⲁ", "ⲁ", "u1"))
+        + '<translation translation="English segment two">'
+        + token("ⲃ", "ⲃ", "u2") + "</translation>"
+    )
+    p = tmp_path / "Seg.tt"
+    p.write_text(META + body, encoding="utf-8")
+    doc = parse_tt(p)
+
+    assert len(doc.verses) == 2
+    assert [v.verse_ref for v in doc.verses] == ["TESTPG:1", "TESTPG:2"]
+    assert doc.verses[0].translation is None, \
+        "the '…' placeholder must not ship as a translation"
+    assert doc.verses[1].translation == "English segment two"
+    assert doc.verses[0].urn == doc.urn
+    assert [t.norm for t in doc.verses[0].tokens] == ["ⲁ"]
+
+
+def test_segment_counter_resets_per_codex_page(tmp_path):
+    body = (
+        fixture_segment("PG1", token("ⲁ", "ⲁ", "u1"))
+        + '<translation translation="…">' + token("ⲃ", "ⲃ", "u2") + "</translation>"
+        + fixture_segment("PG2", token("ⲅ", "ⲅ", "u3"))
+    )
+    p = tmp_path / "Pages.tt"
+    p.write_text(META + body, encoding="utf-8")
+    doc = parse_tt(p)
+    assert [v.verse_ref for v in doc.verses] == ["PG1:1", "PG1:2", "PG2:1"]
+
+
+def test_segment_shape_without_pages_gets_sequence_refs(tmp_path):
+    body = ('<translation translation="…">' + token("ⲁ", "ⲁ", "u1")
+            + "</translation>")
+    p = tmp_path / "NoPage.tt"
+    p.write_text(META + body, encoding="utf-8")
+    doc = parse_tt(p)
+    assert [v.verse_ref for v in doc.verses] == ["seg 1"]
+
+
+@needs_shenoute
+def test_real_shenoute_file_parses_with_segments():
+    """The measured property of the real work: every translation pair becomes
+    a verse, and every verse carries tokens."""
+    raw = SHENOUTE_TT.read_text(encoding="utf-8")
+    expected = raw.count("<translation ")
+    assert expected == 22, "fixture changed: GF17-18.tt should have 22 segments"
+    doc = parse_tt(SHENOUTE_TT)
+    assert len(doc.verses) == expected
+    assert all(v.tokens for v in doc.verses)
+    # GF17-18 specifically has 0/22 aligned segments (the source's "…"
+    # placeholder); other files in the work carry real English (587/1,078
+    # across the work — alignment = "partial").
+    assert all(v.translation is None for v in doc.verses), \
+        "GF17-18 carries only the source's '…' placeholder, not a translation"
+    assert doc.verses[0].verse_ref.startswith("GF17:")
+    assert doc.licence.startswith("CC-BY")

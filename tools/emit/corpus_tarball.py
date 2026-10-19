@@ -202,8 +202,10 @@ def build_work(work: dict, out_root: pathlib.Path,
 
     verses: list[dict] = []
     tokens: list[dict] = []
+    licences: set[str] = set()
     for f in tt_files:
         doc = parse_tt(f)
+        licences.add(doc.licence)
         for v in doc.verses:
             vidx = len(verses)
             verses.append({
@@ -255,11 +257,29 @@ def build_work(work: dict, out_root: pathlib.Path,
     # A guard that cannot notice the artefact changing is not a guard. So
     # meta.json now carries the sha256 of text.json and tokens.json, which makes
     # the content hash part of the fingerprint at no extra cost -- meta.json is
-    # still one small file to hash, but it now MOVES when the content moves.
+    # still one small file to hash, but it also MOVES when the content moves.
     text_sha = hashlib.sha256((dest / "text.json").read_bytes()).hexdigest()
     tokens_sha = hashlib.sha256((dest / "tokens.json").read_bytes()).hexdigest()
 
-    licence = "CC-BY-SA-4.0"
+    # Session 25 D1. The licence is PER DOCUMENT — tools/sources.lock [corpora]
+    # says so in as many words — and this line used to hard-code CC-BY-SA-4..0
+    # for every work. Measured across the seven works now shipped: only
+    # sahidic_ruth declares SA; the other six (Mark, 1 Corinthians, Lausiac,
+    # Isaac, Victor, Eagerness) are CC-BY 4.0 in every one of their _TT <meta>
+    # blocks. Labeling BY as BY-SA overstates the reader's obligation and
+    # understates the licensor's grant. Take the value the parser extracted
+    # from <meta license=…>; if a work's files ever disagree, take the
+    # strictest (SA over BY) rather than the first, and say so.
+    def _strictest(lics: set[str]) -> str:
+        if not lics:
+            return "UNKNOWN"
+        for prefix in ("CC-BY-SA", "CC-BY"):
+            hits = sorted(x for x in lics if x.startswith(prefix))
+            if hits:
+                return hits[0]
+        return sorted(lics)[0]
+
+    licence = _strictest(licences)
     meta = {
         "slug": slug,
         "title": work.get("title", slug),
@@ -435,17 +455,22 @@ def main(argv: list[str] | None = None) -> int:
         if removed:
             print(f"[tarball] work(s) removed: {', '.join(removed)}")
 
-    # Stage 2: only now is the work tree replaced, and only with the works whose
-    # fingerprint moved. An unchanged work keeps its existing files, so `git diff`
-    # on work_root shows exactly which work changed.
+    # Stage 2: the work tree is replaced wholesale, from SCRATCH — the tree that
+    # was just built from the current sources. Session 25 D1: the old code
+    # rmtree'd work_root and then re-copied only the changed works, so the
+    # unchanged ones were dropped from both the tree and the tarball — the
+    # comment said they "keep their existing files" in a directory that had just
+    # been deleted. Every past run masked it because every past run changed
+    # every work at once (first build, or a corpus-wide emitter fix); the first
+    # run that changed exactly one work (adding shenoute_eagerness) produced a
+    # tarball containing only that work. Scratch is byte-reproducible from the
+    # same inputs, so copying all works from it is identical to keeping the old
+    # files — and correct on a fresh clone where work_root never existed.
     if args.work_root.exists():
         shutil.rmtree(args.work_root)
     args.work_root.mkdir(parents=True)
     for slug in sorted(prints):
-        if slug in changed or slug in added or args.force:
-            shutil.copytree(scratch / slug, args.work_root / slug)
-        else:
-            print(f"[tarball] {slug}: unchanged, keeping existing files")
+        shutil.copytree(scratch / slug, args.work_root / slug)
     shutil.rmtree(scratch, ignore_errors=True)
 
     # Session 6 D1: the tarball is written, then its size and SHA-256 are read

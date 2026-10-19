@@ -148,6 +148,24 @@ def parse_tt(path: Path, *, min_verses: int = 1) -> Document:
     pending_urn: str | None = None
     chapter: str | None = None
 
+    # Session 25 D1 — the THIRD shape of _TT, and why it exists.
+    #
+    # Measured over all 17 files of shenoute.eagerness_TT: ZERO <verse_n>,
+    # ZERO <verse_vid>. Shenoute's discourses are not chapter-and-verse texts;
+    # the corpus encodes them as codex pages (<pb_xml_id>) subdivided into
+    # <translation> segments — the same structural slot that carries the
+    # aligned English in biblical works. 587 of 1,078 segments carry real
+    # English (Brakke/Crislip etc.); the rest carry the source's "…"
+    # placeholder (alignment = "partial" in tools/shipped.toml).
+    #
+    # So in this shape a <translation> pair IS the verse boundary: it opens the
+    # Verse and closes it. The first time corpus_tarball met these files every
+    # one hit Fix 4a's 0-verses floor and was refused — which is exactly the
+    # guard doing its job on a shape the parser did not yet know.
+    seg_shape = "<verse_n" not in raw
+    page: str | None = None
+    seg_no = 0
+
     pos = 0
     n = len(raw)
     while pos < n:
@@ -164,13 +182,14 @@ def parse_tt(path: Path, *, min_verses: int = 1) -> Document:
             # </verse_vid> still closes one for Ruth, where it is the inner
             # wrapper; by then `cur` is None in the other shape and this is a
             # no-op, so nothing is appended twice.
-            if name in ("verse_vid", "verse_n") and cur is not None:
-                if cur.tokens:
-                    doc.verses.append(cur)
-                cur = None
-                pending_translation = None
-                pending_urn = None
-                pending_orig = None
+            if name in ("verse_vid", "verse_n") or (seg_shape and name == "translation"):
+                if cur is not None:
+                    if cur.tokens:
+                        doc.verses.append(cur)
+                    cur = None
+                    pending_translation = None
+                    pending_urn = None
+                    pending_orig = None
             continue
 
         if name == "verse_n":
@@ -195,9 +214,30 @@ def parse_tt(path: Path, *, min_verses: int = 1) -> Document:
                     translation=pending_translation,
                 )
 
+        elif name == "pb_xml_id" and seg_shape:
+            # Codex page marker: resets the per-page segment counter, so a
+            # ref reads "GF17:3" — page the reader can locate in the
+            # Krawiec/Emmel edition, plus the segment index within it.
+            page = _attrs(body).get("pb_xml_id") or page
+            seg_no = 0
+
         elif name == "translation":
             # The aligned human translation for the verse that FOLLOWS.
             t = html.unescape(_attrs(body).get("translation", "")).strip()
+            if seg_shape:
+                # Defensive: an unclosed previous segment must not lose its
+                # tokens when the next one opens.
+                if cur is not None:
+                    if cur.tokens:
+                        doc.verses.append(cur)
+                    cur = None
+                seg_no += 1
+                cur = Verse(
+                    verse_ref=(f"{page}:{seg_no}" if page else f"seg {seg_no}"),
+                    urn=doc.urn,
+                    translation=None if t in ("", "…") else t,
+                )
+                continue
             pending_translation = t or None
             # Session 8 D3: since <verse_n> now opens the Verse, the verse
             # usually EXISTS by the time its translation arrives -- the old code

@@ -69,6 +69,11 @@ WORK_SOURCES: dict[str, list[tuple[str, str]]] = {
     # byte-for-byte against the release (Session 7).
     "sahidic_ruth":          [("coptic-treebank/coptic.treebank_TT", "Ruth_*.tt"),
                              ("sahidica.ruth", "*.tt")],
+    # Session 25 D1. The one Shenoute work in shipped.toml; upstream holds it
+    # under a dated-fragment _TT dir (GF/GL/XJ shelfmarks), 17 files. Only
+    # *.tt under that dir match -- the sibling ANNIS/CONLLU/TEI/PAULA trees
+    # are other encodings of the same text and are deliberately not extracted.
+    "shenoute_eagerness":    [("shenoute-eagerness/shenoute.eagerness_TT", "*.tt")],
 }
 
 #: Declared in shipped.toml, absent from the corpus of record. Reported, never
@@ -379,10 +384,17 @@ def _write_pins(pins: dict[str, dict]) -> int:
                 print("[fetch_work] REFUSING: [corpora] would change outside "
                       "`works`.", file=sys.stderr)
                 return 0
+            # Session 25 D1 bug: the per-slug loop below must compare against
+            # the works table as it landed in `after`. Reading it off `a2`
+            # cannot work -- `a2.pop("works")` above already removed it, so
+            # `.get(slug)` was always None and the tool refused every append
+            # that followed the first six pins (Session 7), naming the first
+            # existing slug as the one that "would change".
+            aw = (after.get("corpora") or {}).get("works") or {}
             for slug, spec in (val.get("works") or {}).items():
-                if (a2.get("works") or {}).get(slug) != spec:
-                    print(f"[fetch_work] REFUSING: existing pin {slug} would "
-                          f"change.", file=sys.stderr)
+                if aw.get(slug) != spec:
+                    print("[fetch_work] REFUSING: existing pin %s would "
+                          "change." % slug, file=sys.stderr)
                     return 0
             continue
         if after.get(key) != val:

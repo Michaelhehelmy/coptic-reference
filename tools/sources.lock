@@ -237,3 +237,11 @@ note        = "Session 4 Q2: removed from ALLOWED_SOURCES and reserved here, so 
 sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 bytes  = 0
 note   = "no upstream source; outreach by Michael (C5)"
+
+# ── corpus work byte pins (append-only, tools/fetch/fetch_work.py) ──
+# Added, never modified, by this tool. A human edits an existing pin.
+# digest = sha256 over the work's .tt members, length-prefixed, name order.
+
+[corpora.works."shenoute_eagerness"]
+sha256 = "bce80a38ca32e2bbbce2d5e6b1bda87abaa367b85fe94ee23415ec6577921fb0"
+bytes  = 3693906

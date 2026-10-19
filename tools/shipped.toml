@@ -91,9 +91,13 @@ dialect = "S"
 urn = "urn:cts:copticLit:saecul.martyrologium.victor"
 alignment = "none"
 
-# Monastic tier. Shipped = false so nothing is published before a linguist signs
-# off on the segmentation. Listed so the tier is visible and auditable rather
-# than absent, and so flipping the switch is a one-word diff.
+# Monastic tier. Session 25 D1: the liturgical tier remains unobtainable from
+# the corpus of record (KNOWN_ABSENT_UPSTREAM in tools/fetch/fetch_work.py), so
+# the closed order has reached P2.4 and this switch is ON. The segmentation has
+# NOT yet been signed off by a linguist -- the work ships as text-only Coptic
+# with PARTIAL English (587/1,078 aligned segments) FOR EXPERT REVIEW, and the
+# /dialects coverage badge and the expert-review packet must say so. Flipping
+# back is still a one-word diff.
 
 [[work]]
 slug = "shenoute_eagerness"
@@ -101,6 +105,6 @@ title = "Eagerness for Martyrdom"
 tier = "monastic"
 dialect = "S"
 urn = "urn:cts:copticLit:saecul.monasticum.shenoute.eagerness"
-shipped = false
-alignment = "none"
-note = "NOT SHIPPED. Shenoute is where the grammar gets hard, not where the language gets useful."
+shipped = true
+alignment = "partial"
+note = "SHIPPED (Session 25) pending linguist sign-off on the segmentation. 587 of 1,078 segments carry an aligned English translation; the rest are the source's '…' placeholder. Hardest grammar in the project, deliberately last in the roll-out order."
