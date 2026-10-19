@@ -24,7 +24,7 @@ into something that loads fast, works without a signal, and costs nothing to run
 | **Corpus** | 2.38M words of Sahidic and Bohairic Coptic with part-of-speech, lemma, and dependency parse. Tap any word to look it up. |
 | **Translations** | Human translations aligned line by line — Brenton's Septuagint, Budge's editions, Arabic. Not machine translation. |
 | **Concordance** | Every occurrence of any lemma, with context and deep links. |
-| **Lessons** | Fifteen lessons to start. Five more a month, in the open. |
+| **Lessons** | Twenty lessons to start. Five more a month, in the open. |
 | **Flashcards** | ~11,500 cards, exportable to Anki. |
 | **Offline** | Works with no signal. Installable. No account, ever. |
 
@@ -42,7 +42,7 @@ the finished goal. Read this section before trusting any other part of this file
 | **Gates** | Nine guards, all run against the real dataset, each with a demonstrated failure: `collation_guard`, `nc_guard`, `nc_guard_public`, `licence_guard`, `corpus_text_guard`, `tarball_repro_check`, `tarball_guard_check`, `dialects_check`, `fetch_all --check/--self-test`, plus `dry_run --real`. **14 CI jobs.** | — |
 | **Schemas** | `entry.schema.json` (all 11,369 real entries valid), `suggestion.schema.json` | — |
 | **Contributions** | `workers/suggest/index.ts`, 28 smoke assertions incl. search-based dedup | **Never deployed.** No preview, no live GitHub test |
-| **The site** | — | Hugo config, layouts, theme, content, Pagefind index, **all 15 lessons**, `/roadmap/`, `/licences/`, `/credits/` |
+| **The site** | — | Hugo config, layouts, theme, content, Pagefind index, **all 20 lessons**, `/roadmap/`, `/licences/`, `/credits/` |
 
 **Gated, deliberately, until a human decides** (see `PRE_LAUNCH.md`):
 
@@ -478,6 +478,33 @@ People: **[/credits/](credits.md)** (hand-written).
 If your work is here and the attribution is wrong, tell us and we will fix it.
 
 ---
+
+## Session 25 status
+
+**The course reaches twenty, and the seventh work is in the reader.**
+
+- `shenoute_eagerness` ships: 1,078 segments / 16,625 tokens, the TT
+  parser's third shape (translation-segmented, codex-page labels), honest
+  partial English (21 segments carry Brakke/Crislip prose; the rest are
+  the edition's own placeholders). Per-document licences via `_strictest`
+  (five works are CC BY 4.0, not SA); tarball Stage-2 copies every work
+  from scratch after a partial rebuild dropped 18 of 21 members;
+  `size_guard`'s data ceiling moves 5 → 6 MB with the measurement written
+  down.
+- Lessons 16–20 teach: circumstance frames (ⲉⲣⲉ, ⲙⲡⲁⲧⲉ), prepositions
+  and the bare dative, then a three-lesson arc reading Shenoute himself
+  and closing on the whole shelf. Every count in code and templates
+  moved 15 → 20; the lesson plan and lesson 15's closing followed.
+- The grammar-claims register gains rows for the new lessons (verdicts
+  blank); the POS register was re-measured on the seven-work tarball
+  (VBD 457→494 tokens, AFUTCONJ 2→6); the review packet re-mirrors both.
+- Playwright opens all seven works, with a data-driven English probe for
+  Shenoute (verse 0 carries none). Battery 466 passed / 22 skipped /
+  1 xfailed; build 279 files / 15,765,927 B; deployed `0bf66db6`,
+  production alias verified.
+- The long-lived "587 real English segments" claim was wrong (it counted
+  the source's ASCII "..." placeholders); the recount is 21 of 1,078,
+  corrected everywhere it was written down.
 
 ## Session 24 status
 

@@ -119,7 +119,7 @@ Lessons are CC BY-SA and live in `content/lessons/`. Each one needs:
   beginner who is not told.
 - **Expert review before publication.** Unreviewed grammar is worse than none.
 
-Fifteen lessons exist at launch. **We add five a month**, chosen from what
+Twenty lessons exist now. **We add five a month**, chosen from what
 suggestions and readers ask for. See [ONBOARDING.md](ONBOARDING.md) week 4 for
 what writing one actually costs.
 

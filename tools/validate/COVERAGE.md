@@ -619,3 +619,34 @@ the difference because every test server so far has served `.gz` undecoded.
   headers and docs only; Session 22's numbers stand.
 - **Anki import on a real device** (carried). Decks verified as
   collections, not opened in the Anki app.
+
+## Session 25 — coverage
+
+| Task | Result |
+|---|---|
+| D0 | window re-measurement — plan's v42–45/v306–309/v43 claims dead; new disjoint windows 95–98/100–103/82–85/89–93 + lausiac 4–7; EN truth 21/566/491 of 1,078 |
+| D1 | shenoute_eagerness shipped (75a9057): TT third shape, per-document licence via _strictest, Stage-2 full-copy fix + regression, partial-alignment INFO, size ceiling 5→6 MB; tarball 21 members sha ce430820 (rebuild) |
+| D2 | lessons 16–20 written, guard after each (OK — 20 lessons); crasis/macron chr()-injected; README plan section regenerated from front matter after hand-typed drift; 15→20 touchpoints incl. Playwright count |
+| D3 | GRAMMAR_CLAIMS +8 rows (4 claims, 1 restates, 3 no-claim); verdicts blank; grammar_claims_verified false |
+| D4 | packet re-mirrored (test_review_packet green); POS register re-measured on 7 works: VBD 494, PPERI 539, IMOD 563, FM 50, APREC 388, AOPT 13, AAOR 163, AFUTCONJ 6 |
+| D5 | battery 466/22/1; Playwright WORKS +shenoute (1,078/16,625), data-driven EN probe, all-seven-works routing test; build 279 files 15,765,927 B PASSED; 31 standalone validators rc=0 |
+| D6 | commits 75a9057+cd98e37 pushed; deploy 0bf66db6 (119 new files); production alias verified (course.json 20 lessons, lessons 16–20, packet, shenoute reader) |
+| D7 | DECISIONS S25; PLAN-ERRATA E37–E41; this file; SHIP/README current counts; FAQ/CONTRIBUTING/PRE_LAUNCH; POST_DEPLOY work list |
+
+### Not covered
+
+- **Lighthouse this session.** `static/js/course.js` changed (count
+  15→20, unlock-all loop); no Lighthouse run against the new build —
+  Session 19's `/course/` numbers stand un-refreshed.
+- **A deep post-deploy verification.** Session 24's full checklist
+  (headers, SW, Pagefind, decks, console) was not re-run; this deploy
+  checked route status codes, the live course.json, the packet's new
+  rows, and the Shenoute reader. Re-run POST_DEPLOY_CHECKLIST on the
+  next deep pass.
+- **Grammar and POS verdicts** — both registers' cells are blank by
+  design; the linguist is the missing input (carried).
+- **Why the git-connected build produces empty deployments** — carried
+  from Session 24; the release path does not depend on it.
+- **The typed-Coptic mangling root cause** (E39) — the chr() tactic
+  works and the guard verifies; where the interface loses the
+  codepoints is not diagnosed.

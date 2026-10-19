@@ -78,7 +78,7 @@ makes the reading path a hard gate.
 
 | | Check | Result |
 |---|---|---|
-| ☐ | 15 lessons, each reviewed by a Coptic linguist | |
+| ☐ | 20 lessons, each reviewed by a Coptic linguist | |
 | ☐ | Every lesson: ≥ 300 words, ≥ 3 examples, ≥ 5 corpus deep-links, ≥ 1 grammar ref | |
 | ☐ | axe-core: 0 critical, 0 serious on all 6 templates | |
 | ☐ | Full keyboard operability of search, reader, concordance | |

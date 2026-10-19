@@ -3302,3 +3302,90 @@ section, third quirk, Production verification Session 24, STATE OF
 THE PROJECT), README Session 24 status, HANDOFF §5 (deploy-is-last
 rule). DEPLOY.md and POST_DEPLOY_CHECKLIST.md were D1/D2's deliverable
 and are part of this receipt.
+
+## Session 25
+
+### D0: every reading window re-measured before a word was written
+
+The plan's Shenoute windows were checked against the tarball first, and
+three of five were dead. v42–45 carry the source's ASCII "..."
+placeholder, not clean Coptic; v306–309 are empty (the plan's "v309 EN
+'That the word might…'" never existed — a fabricated citation); the old
+v43/ⲛⲁⲓ "dative" is demonstrative "these". Measured replacements, all
+disjoint, all real-English: 95–98, 100–103, 82–85, 89–93, and Lausiac
+4–7. EN truth: 21 real / 566 ASCII "..." / 491 U+2026→None of 1,078.
+
+### D1: the seventh work (receipt 75a9057)
+
+Four decisions worth keeping: `_write_pins` was comparing pins against a
+dict it had already popped ("works" from), refusing every append since
+Session 7 — fixed; licences are per-document via parse_tt + `_strictest`
+(five works are CC BY 4.0, not the hard-coded SA — only Ruth is SA);
+tarball Stage-2 now copies every work from scratch after an incremental
+run left 3 of 21 members (regression test: perturb one fingerprint,
+assert byte-identical output); size_guard's data ceiling moves 5 → 6 MB
+with the 5.29 MB measurement written into the docstring. The note claims
+honest partial English — later corrected from 587 to 21 real segments
+(E38).
+
+### D2: five lessons, and everything that counts them
+
+Lessons 16–20 written one at a time, `lesson_vocab_guard` after each
+(OK — 20 lessons). Two Coptic strings cannot be typed reliably through
+this interface — the crasis ⲙ ⲡ ⲁ ⲧ ⲉ and macron ⲛ + U+0304 — so exact
+forms are injected programmatically with `chr()` sequences and the
+guard verifies them by norm (E39). The README lesson plan for 16–20 was
+first hand-typed and drifted from front matter on three vocab lists; it
+is now regenerated from the lesson files themselves. Every 15-count
+touchpoint moved to 20 (coursegen, course.js, test_course, noscript
+list, _index.md, lessons plan, lesson 15's closing paragraph, the
+Playwright count assert).
+
+### D3: claims for the new lessons
+
+Four new rows (circumstantial ⲉⲣⲉ, temporal ⲙⲡⲁⲧⲉ, fronted possessive
+ⲙ/ⲛⲧⲉ, bare dative ⲛⲁ ⲛ), one restates-09 row, three no-claim rows.
+The v43/ⲛⲁⲓ evidence was replaced by v102's aligned "give it to us"
+(E40). Verdict cells stay blank; `grammar_claims_verified` stays false.
+
+### D4: the packet re-mirrors, and the POS counts stop lying
+
+`test_review_packet` failed the moment the register grew — by design —
+so the packet was re-spliced from both registers. The POS register's
+counts were measured on the six-work tarball and had gone stale the
+moment Shenoute shipped (VBD 457→494, PPERI 454→539, AFUTCONJ 2→6 with
+three forms). Re-measured all eight rows programmatically from the
+seven-work tarball — forms injected from data, never typed — and both
+registers' prose now says seven works / Session 25. The cheaper option
+(a caveat) was rejected: a reviewer checking the numbers against the
+shipped tarball must find them true.
+
+### D5: the suite grows with the corpus
+
+Playwright's WORKS table gains `shenoute_eagerness` (1,078 / 16,625,
+first ref GF17:1). The reader test's "first verse has English" assert
+became data-driven — Shenoute's verse 0 is one of the 491 silent ones —
+so it probes the first verse that has English.
+`test_all_six_works_are_present` became `test_all_shipped_works_are_present`.
+Battery: 466 passed, 22 skipped, 1 xfailed. Build: 279 files /
+15,765,927 B, provenance guard PASSED. All 31 standalone validators
+rc=0; tarball repro `ce430820…`.
+
+### D6: pushed, deployed, verified
+
+D1 (`75a9057`) and D2–D5 (`cd98e37`) pushed together; wrangler upload
+278 files (119 new); deployment `0bf66db6`; production alias verified
+afterwards — /course/ 200 with live course.json reading 20 lessons
+through "Lesson 20 — Reading ahead: the whole shelf", lessons 16–20 all
+200 with the right titles, packet showing the 494-token VBD row,
+/corpus/shenoute_eagerness/ 200. Deploy stayed the last act (E36).
+
+### D7: docs (this section and its companions)
+
+PLAN-ERRATA E37–E41 (fabricated windows, the 587 lie, the typed-Coptic
+mangling, the dead dative claim, D1's verse arithmetic in the commit
+message); COVERAGE Session 25 rows; SHIP and README current-state
+counts (20 lessons, seven works, 3,631/7,244 drills, 3,631-card deck);
+FAQ/CONTRIBUTING/PRE_LAUNCH lesson counts; POST_DEPLOY's work list.
+Historical Session-status sections were left as written — they were
+true when written.

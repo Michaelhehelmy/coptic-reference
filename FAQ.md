@@ -207,17 +207,17 @@ wonder about it. See [GOVERNANCE.md](GOVERNANCE.md).
 
 ### Why is there a lesson on ⲧ and not on ϩ?
 
-There is not, yet. **We ship 15 lessons and add five a month**, chosen from what
+There is not, yet. **We ship 20 lessons and add five a month**, chosen from what
 readers actually ask for.
 
 The order is not random: bound groups and pronouns first, then the verb system,
 because you cannot read anything without them. Suggest a lesson and it goes in
 the queue.
 
-### Why are there only fifteen lessons when I expected a course?
+### Why are there only twenty lessons when I expected a course?
 
 Because writing a lesson honestly takes about a day and a half including expert
-review, and we are two people. **We would rather ship fifteen lessons that are
+review, and we are two people. **We would rather ship twenty lessons that are
 right than sixty that are thin**, and we would rather grow in public where you can
 see what is coming.
 

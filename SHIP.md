@@ -14,7 +14,7 @@ this project — see “How to deploy updates”.**
 | Repository | `master` through Session 24 (`4ad2c99` cache fix + deploy docs, plus this session's docs commit), clean tree, `sources.lock` untouched (4 VERIFY markers intact) |
 | Tests | 454 passed, 22 skipped, 1 xfailed |
 | Guards | all pass; the guards that guard the build run inside `tools/build.py`, the rest in `pytest tools/tests/` |
-| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 2,589 cloze + 5,174 parse items · Session 19–20: `/course/`, 15 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 959 quiz + 2,589 cloze cards downloadable (Session 23 replaced the 300-card `vocab.apkg` subset; Session 24 re-counted both decks as 959/2,589 via sqlite — no regeneration) · Session 23: `/expert-review-packet/`, every open expert verdict in one place |
+| Learning layer | Session 16: `/quiz/`, 959 items · Session 18–20: `/drill/`, 3,631 cloze + 7,244 parse items · Session 19–20: `/course/`, 20 lessons teaching · Session 21: `/write/`, 35 tracing references, browser-local progress · Session 22: `/speak/`, top-100 self-comparison recorder · `/anki/`, 959 quiz + 3,631 cloze cards downloadable (Session 23 replaced the 300-card `vocab.apkg` subset; Session 24 re-counted both decks as 959/2,589 via sqlite; Session 25 re-counted the drill deck as 3,631 after Shenoute joined) · Session 23: `/expert-review-packet/`, every open expert verdict in one place |
 | Signing | Commits are unsigned — deliberate project state, not an omission. No signing key exists by policy; nothing in the pipeline verifies signatures. Recorded once here instead of per session. Rationale and contributor setup: HANDOFF.md §8a. |
 | Lighthouse | `/dict/` 90/93→**100**/96→**100**/100 (favicon, Session 22), `/corpus/sahidic_ruth/` 78/**92→100**/96/100, `/speak/` **100/100/100/100** |
 
@@ -22,7 +22,7 @@ this project — see “How to deploy updates”.**
 
 **Live.** The whole reference site is on production: dictionary (11,369
 entries, Coptic + English search), six corpus works, 19 quiz banks
-(959 items), 15 lessons + course, 2,589 cloze drills, writing trainer,
+(959 items), 20 lessons + course, 3,631 cloze drills, writing trainer,
 speaking practice, Anki decks, expert-review packet, licences, NC
 material. HTML is visible within a minute of any deploy; assets are
 immutable; the service worker precaches 8 pages and the dictionary
@@ -44,7 +44,7 @@ check-listed against the immutable deployment hostname.
 3. **Pagefind#1370** — English search misses some terms (`copper` → 0
    while `azurite` → 9). Review date 2027-04-01; the workaround stands
    until then.
-4. **More corpus works** — the reading path is proven; six works is a
+4. **More corpus works** — the reading path is proven; seven works is a
    start. Upstream Scriptorium releases are the pipeline's input.
 
 **Who does what next.** Michael: the dashboard checklist above, and the
@@ -63,12 +63,12 @@ a release.
 - **`/quiz/`** — seven data-derived quiz types in 19 static banks. Ten-question
   sessions, localStorage scoring, spaced repetition, JSON export/import, and a
   static no-JS topic list. Progress never leaves the browser.
-- **`/drill/`** — cloze drills from real corpus verses, 2,589 items in 6
+- **`/drill/`** — cloze drills from real corpus verses, 3,631 items in 7
   per-work banks (lexical blanks only since Session 19 D1). Ten-drill
   sessions, localStorage scoring, answer linked to
   its dictionary entry, and a static no-JS work list. Every answer re-read
   from the tarball by `drill_guard.py`.
-- **`/course/`** — fifteen lessons chaining reading, quiz, drill, passage,
+- **`/course/`** — twenty lessons chaining reading, quiz, drill, passage,
   and checkpoint. Checkpoints are real ten-question sessions (70% unlocks
   next, override available); lessons 1–5 teach, 6–15 carry filters with a
   Session 20 TODO. `course_guard.py` checks every filter resolves to data.
@@ -78,7 +78,7 @@ a release.
   area never renders a score. No-JS visitors get `/speak/top100.html`, a
   static table.
 - **`/anki/`** — `quiz.apkg` (all 959 quiz-bank items across 19 banks) and
-  `drill.apkg` (all 2,589 cloze items), generated at build time from the
+  `drill.apkg` (all 3,631 cloze items), generated at build time from the
   same banks the site serves, downloadable with no account. (Session 23 D1
   replaced the Session 22 `vocab.apkg` 300-card subset.)
 - **Offline** — the service worker registers, precaches exactly 8 declared

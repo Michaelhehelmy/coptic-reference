@@ -595,3 +595,50 @@ gains one clause: **the deploy is the last act**, because a push
 after a deploy can move the alias onto a new empty build. Full
 measurement and Michael's dashboard checklist: DECISIONS Session 24
 D4.
+
+### E37 — the plan's Shenoute reading windows were partly fabricated
+
+**Claim (plan, Session 24 handoff):** lesson windows 306–309 and 42–45
+carry clean Coptic / real English; v309's English opens "That the word
+might…"; the v43/ⲛⲁⲓ pair is dative evidence.
+
+**Measured, Session 25 D0:** v42–45 en = '...' (the source's
+placeholder); v306–309 en = empty (the quoted sentence never existed in
+the tarball); v43 ⲛⲁⲓ is demonstrative "these". Reading windows were
+re-measured from the tarball and replaced: 95–98 / 100–103 / 82–85 /
+89–93, Lausiac 4–7. Drill ranges unchanged.
+
+### E38 — "587 real English" counted the placeholders
+
+`en populated = 587` counted ASCII "..." as English. Truth: 21 of 1,078
+segments carry real Brakke/Crislip prose; 566 carry "..."; 491 are U+2026
+→ None. Corrected in tt.py's comment, shipped.toml's note (flows into
+meta.json and the corpus pages), corpus_text_guard's comment, and
+test_tt_parser's comment. The parser deliberately still parses "..." as
+it finds it — normalizing would be a data change, not a comment fix.
+
+### E39 — exact Coptic cannot be typed through this interface
+
+Writing a crasis (five contiguous codepoints) or a macron (a letter +
+U+0304) into a file via a typed string silently mangles diacritics and
+spacing. The working tactic: inject exact strings programmatically with
+`chr()` sequences after the file is written; `lesson_vocab_guard`
+verifies them by normalized form either way. Anything future sessions
+must reproduce exactly (crasis tokens, combining marks) should be built
+from codepoints, not typed.
+
+### E40 — the lesson-16/17 dative claim lost its evidence
+
+The register row for the bare dative cited Shenoute v43 — but that
+token is demonstrative "these" (dead as dative evidence). The live
+evidence is v102: Coptic bare dative against English "give it to us",
+aligned. Row rewritten; the circumstance claim now cites v95 (with
+English) and v309 (Coptic-only) instead of the fabricated translation.
+
+### E41 — D1's commit message mis-adds the verse receipt
+
+`75a9057`'s body says verses 3,201→4,279. The work tables sum to
+2,601→3,679 (measured by corpus_shape_guard on the shipped tarball:
+3,679 verses, 99,642 tokens). The token figures in that message
+(83,017→99,642) are correct; only the verse arithmetic is wrong. The
+commit is immutable; this entry carries the correction.

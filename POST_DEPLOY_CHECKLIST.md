@@ -116,9 +116,10 @@ route /no-such-route/  "Coptic Reference"  "marker-shipped-never"
   to seven days across deploys (E36). Fetch the same path from the
   deployment URL before calling the route broken.
 
-All six works must be listed on `/corpus/`:
+All seven works must be listed on `/corpus/`:
 `bohairic_1corinthians`, `bohairic_mark`, `lausiac_history`,
-`life_of_isaac`, `martyrdom_of_victor`, `sahidic_ruth`.
+`life_of_isaac`, `martyrdom_of_victor`, `sahidic_ruth`,
+`shenoute_eagerness`.
 
 ## 3. The service worker registers
 
@@ -233,7 +234,7 @@ file /tmp/g.bin
 - Click "Look up …" → `/dict/?q=…` opens with the right entry.
 - From that entry, a `worklink` returns to `/corpus/<work>/`.
 
-**Known defect, expected on this deploy:** for five of the six works the tokens
+**Known defect, expected on this deploy:** for six of the seven works the tokens
 under each verse are wrong, because verse refs are not unique within a work
 (`bohairic_mark` has 678 verses and 72 distinct refs). Ruth is the only correct
 one. Do not report this as a deploy failure — it is the
