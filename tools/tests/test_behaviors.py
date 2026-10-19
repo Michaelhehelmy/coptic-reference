@@ -604,3 +604,116 @@ def test_pos_drill_renders_labels_not_tags(origin):
                 context.close()
             if browser is not None:
                 browser.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Typed Coptic round-trips: the box, the deep link, the index.
+#
+# E39 (Session 25) claimed exact Coptic cannot be typed through the agent
+# interface. Session 26 D0.1/D0.2 reproduced and diagnosed the real failure:
+# the write tool, the filesystem, and the browser all preserve the codepoints
+# they are given; the mangling was hex escapes hand-typed from memory in
+# *construction* (`\u2c89` for ⲩ — U+2CA9). This test is the behavioural
+# guard on both hops:
+#
+#   * the browser hop — type ⲧⲉⲛⲟⲩ into /dict/'s box, assert the exact
+#     codepoints arrive, the right entry renders, and nothing is mangled
+#     (skipped without chromium, like its neighbours);
+#   * the data hop — the lemma, its norm_key, and the strip/casefold tables
+#     the reader uses must agree, checked in plain Python so the default
+#     suite catches a broken table without a browser.
+#
+# The lemma is read from the shipped index, never constructed: constructing
+# it is exactly the hop that failed (Rule 10 — the probe must not share the
+# defect it measures).
+# ─────────────────────────────────────────────────────────────────────────────
+def test_behavior_7_typed_coptic_round_trip(origin):
+    import urllib.parse
+
+    idx_path = PUBLIC / "data" / "dist" / "dict" / "index.json.gz"
+    if not idx_path.is_file():
+        pytest.skip("no dictionary index — run tools/build.py first")
+    idx = json.loads(gzip.decompress(idx_path.read_bytes()))
+
+    # The word under test, from the data.
+    word = "ⲧⲉⲛⲟⲩ"
+    row = next((r for r in idx["rows"] if r["lemma"] == word), None)
+    assert row is not None, f"{word} is not in the dictionary index"
+
+    # Data hop: re-implement normKey against the PUBLISHED tables. If the
+    # tables drift from what reader.js ships, this fails before any browser
+    # is involved.
+    casefold = {int(k.replace("U+", ""), 16): v
+                for k, v in (idx.get("casefold") or {}).items()}
+    strip = {int(k.replace("U+", ""), 16) for k in (idx.get("strip_chars") or [])}
+
+    def norm_key(s):
+        import unicodedata
+        out = ""
+        for ch in unicodedata.normalize("NFC", s):
+            cp = ord(ch)
+            if cp in strip:
+                continue
+            out += casefold.get(cp, ch)
+        return out
+
+    assert norm_key(word) == row["norm_key"], (
+        f"normKey({word!r}) = {norm_key(word)!r} but the index publishes "
+        f"{row['norm_key']!r}; the deep link and the typed box would disagree "
+        "with the index")
+    # A typed combining mark (E39's macron) must not break the lookup: the
+    # strip table is what makes that true, and U+0304 is the mark the lessons
+    # actually use.
+    assert 0x304 in strip, (
+        "U+0304 (combining macron) is not in the published strip table; a "
+        "typed ⲛ̄ would never match ⲛ")
+    assert norm_key(word + "̄") == row["norm_key"], (
+        "a typed combining macron changes the norm key; diacritics must strip")
+
+    # The deep link URL the corpus emits must survive percent-encoding.
+    encoded = urllib.parse.quote(word)
+    assert encoded == "%E2%B2%A7%E2%B2%89%E2%B2%9B%E2%B2%9F%E2%B2%A9", (
+        f"quote({word!r}) = {encoded!r}, which is not the documented E39 "
+        "percent-encoding — the lemma changed under the test")
+    assert urllib.parse.unquote(encoded) == word
+
+    # Browser hop (skipped without chromium, like tests 7–8 above).
+    pw = pytest.importorskip("playwright.sync_api")
+    with pw.sync_playwright() as playwright:
+        browser = None
+        context = None
+        try:
+            browser = playwright.chromium.launch()
+        except Exception as e:  # noqa: BLE001
+            pytest.skip(f"chromium unavailable: {e}")
+        try:
+            assert browser is not None
+            context = browser.new_context(service_workers="block")
+            page = context.new_page()
+            page.goto(f"{origin}/dict/")
+            page.wait_for_function(
+                "() => document.getElementById('count-all') && "
+                "!document.getElementById('count-all').textContent.includes('Loading')",
+                timeout=25000)
+            page.locator("#q").click()
+            page.locator("#q").press_sequentially(word, delay=30)
+            page.wait_for_timeout(800)
+            typed = page.evaluate("() => document.getElementById('q').value")
+            assert [hex(ord(c)) for c in typed] == [hex(ord(c)) for c in word], (
+                "the input box mangled the typed codepoints — the E39 bug, live")
+            hits = page.locator("#results button.hit")
+            assert hits.count() >= 1, (
+                f"typed {word!r} into /dict/ and got zero hits; the word is in "
+                "the index (asserted above), so the lookup path is broken")
+            hits.first.click()
+            page.wait_for_selector("#entry h2", timeout=25000)
+            assert page.inner_text("#entry h2").strip() == word
+            body = page.inner_text("#entry")
+            assert "[object Object]" not in body
+            assert "now" in body.lower(), (
+                "the entry for ⲧⲉⲛⲟⲩ does not gloss 'now' — the wrong row rendered")
+        finally:
+            if context is not None:
+                context.close()
+            if browser is not None:
+                browser.close()

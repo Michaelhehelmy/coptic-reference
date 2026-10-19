@@ -462,6 +462,15 @@ def main(argv: list[str] | None = None) -> int:
         print("[build] corpus shape guard failed — refusing to publish", file=sys.stderr)
         return rc
 
+    # Session 26 D1 (E38's guard): any written "real English" count must match
+    # the tarball. The 587 claim counted placeholders and only missed the
+    # deployment because the correction shared a push with the introduction.
+    rc, _ = run([sys.executable, str(ROOT / "tools" / "validate" / "corpus_claim_guard.py")],
+                what="corpus_claim_guard")
+    if rc != 0:
+        print("[build] corpus claim guard failed — refusing to publish", file=sys.stderr)
+        return rc
+
     rc, _ = run([sys.executable, str(ROOT / "tools" / "emit" / "headers.py")], what="headers")
     if rc != 0:
         return rc
