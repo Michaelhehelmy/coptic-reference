@@ -250,6 +250,19 @@ see D4):
 | Decks | `quiz.apkg` 676,058 B and `drill.apkg` 3,514,586 B, byte-exact against local |
 | Apex after deploy | `/lessons/05/` **200** with `s-maxage=60` (was bare 404 pre-deploy — origin restored); `/dict/` 200 with the new policy |
 
+## Production verification (Session 26)
+
+Deployment `0bf66db6` (Session 25's upload, re-verified in full),
+checked against the deployment hostname — deliberately not the apex
+until D4 confirmed the alias:
+
+| Check | Result |
+|---|---|
+| Manifest | remote == local: 303 files, collation `b7b49af6e144ef87`, `generated 2026-10-19T12:34:53Z` (post-build differs only in `generated`, which is input-mtime derived) |
+| Deep POST_DEPLOY | **16/16** — 25 routes+7 works+neg-control; SW on 3 routes; offline /dict/ renders 11,369 entries; Pagefind ⲧⲉⲛⲟⲩ → 2 hits; copper → 19 via /dict/; dict edges (exact + U+FE26 strip → 297); corpus round trip (Ruth 85 verses / 3,470 tokens → panel → dict → worklink); decks quiz 959 + drill 3,631 notes (valid sqlite); favicon real ICO bytes; HTML s-maxage=60, assets max-age=31536000, SW-allowed, CSP+nosniff; gzip intact; no [object Object]; 0 console errors on /, /dict/, /course/ |
+| Lighthouse 13.5.0 (deployment hostname) | a11y 100 on all 10 routes; perf / 100, dict 94, ruth 96, quiz 99, drill 100, course 97, write 100, speak 100, anki 98, grammar-claims 98; best-practices 100 everywhere; SEO 63 = `x-robots-tag: noindex` on deployment hostnames (apex carries none — artifact, not a defect). No a11y<90 or perf<85 findings. |
+| Alias after Session 25's push | `/favicon.ico`, `/lessons/16/`, `/speak/` all 200 on the apex; apex manifest byte-identical to the deployment's — the alias serves the wrangler upload, not a git build. Git-connected emptiness remains open (Michael's, carried from Session 24). |
+
 ## Who to contact
 
 Maintainer: **Michael Helmy** (AUTHORS.md, GOVERNANCE.md).

@@ -650,3 +650,29 @@ the difference because every test server so far has served `.gz` undecoded.
 - **The typed-Coptic mangling root cause** (E39) — the chr() tactic
   works and the guard verifies; where the interface loses the
   codepoints is not diagnosed.
+
+## Session 26 — coverage
+
+| Task | Result |
+|---|---|
+| D0 | E39 reproduced vs live0bf66db6 then disproved — typed/fill/deep-link all round-trip; root cause = hand-typed hex in construction (`\u2c89` for U+2CA9 etc.); write-tool probe preserved every literal; 4 new Playwright tests + behavior test 7 (5 passed) |
+| D1 | E38 closed: 587 never in any shipped artifact (lived in `75a9057` tree comments + shipped.toml note; that tree never built-and-deployed alone); `corpus_claim_guard.py` (tarball truth vs shipped.toml/meta.json/content claims; negative demonstrated; wired into build.py) |
+| D2 | Lighthouse 13.5.0, 10 routes on deployment hostname: a11y 100 everywhere, perf 94–100, no findings; SEO 63 = `x-robots-tag: noindex` on deployment hostnames (apex has none — artifact) |
+| D3 | deep POST_DEPLOY 16/16: 25 routes+works+neg-control, manifest match (303), SW (3 routes), offline /dict/ 11,369, Pagefind ⲧⲉⲛⲟⲩ→2, copper→19, dict edges (exact+FE26→297), corpus round trip, decks 959/3,631 sqlite, favicon real ICO, headers (s-maxage/immutable/SW-allowed/CSP/nosniff), gzip intact, no [object Object], 0 console errors |
+| D4 | alias safe: apex 3 curls 200; apex manifest byte-identical to deployment (303 files, same generated/collation) — alias serves the wrangler upload, not a git build; git-build emptiness still open (Michael's) |
+| D5 | battery 471/22/1 (+5); build 279 files 15,765,927 B PASSED with corpus_claim_guard in-pipeline; manifest differs from deployed only in `generated` (input-mtime; build.py edit) — file set/bytes/collation identical, no redeploy; 29 validators + fetch_work --check rc=0 |
+| D6 | commit 422d063 (guard+tests+build wiring); push held until D4 cleared (C5), then docs+fix pushed together; no deploy (no site bytes changed) |
+| D7 | DECISIONS S26; PLAN-ERRATA E38/E39 resolutions; this file; SHIP production-verification refreshed (deep 16/16, Lighthouse table, alias-safe) |
+
+### Not covered
+
+- **Grammar and POS verdicts** — both registers' cells are blank by
+  design; the linguist is the missing input (carried).
+- **Why the git-connected build produces empty deployments** — carried
+  from Session 24; D4 showed the alias currently serves the direct
+  upload, so the release path does not depend on it.
+- **Anki import on a real device** (carried). Decks verified as
+  valid sqlite collections with the expected note counts, not opened
+  in the Anki app.
+- **Edge-cache TTL expiry behavior** (carried). Header contract
+  verified both sides; long-run expiry not aged out.

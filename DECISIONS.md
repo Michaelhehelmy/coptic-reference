@@ -3389,3 +3389,115 @@ counts (20 lessons, seven works, 3,631/7,244 drills, 3,631-card deck);
 FAQ/CONTRIBUTING/PRE_LAUNCH lesson counts; POST_DEPLOY's work list.
 Historical Session-status sections were left as written — they were
 true when written.
+
+## Session 26 — E39 disproved, E38 guarded, deep-verified
+
+Final agent bug-fixing session (C1–C6: corrections and verification
+only; no new content or features). Carried items — grammar/POS
+verdicts, the git-build root cause, content expansion — are Michael's.
+
+### D0: E39 reproduced, then disproved
+
+The typed-Coptic claim was reproduced against the live deployment
+(`0bf66db6`): typing, `?q=` deep link, and `fill()` all round-trip the
+codepoints they are given — `ⲧⲉⲛⲟⲩ` (U+2CA7 2C89 2C9B 2C9F 2CA9)
+searched, matched, and opened the correct entry with zero console
+errors. The first repro run reported zero hits because the agent had
+hand-typed `\u2c89` (U+2C89 = ⲍ) where ⲩ (U+2CA9) was intended —
+the mangled string was never on the site, only in the probe. A
+write-tool probe confirmed the chain preserves literals exactly:
+macron (U+2C9B+U+0304), crasis, and `ϣⲁⲣⲉ` all byte-exact while the
+hand-typed expectation arrays beside them were wrong (ⲡ is U+2CA1,
+not 2C8D; ϣ is U+03E3, not 2E43). Root cause: hex-from-memory in
+construction, not the interface, the filesystem, or the tools.
+
+### D0.3/D0.4: guards read the word, never type it
+
+`tools/tests/playwright/test_typed_coptic.py` (4 tests): typed
+round-trip, deep-link assertion, fill, and the site-wide surface
+inventory pinning `/dict/` as the only typed-Coptic input (write uses
+`<select>`, speak has no input, corpus has no search box).
+`test_behavior_7_typed_coptic_round_trip` in `test_behaviors.py`
+runs the same round trip in plain Python against the published
+casefold/strip tables (macron strips, `quote()` matches the documented
+percent-encoding), then the browser hop when chromium is present.
+Both extract the word from `data/dist/dict/index.json.gz` — the
+discipline E39 should have been: never construct Coptic from memory.
+
+### D1: E38 — 587 never shipped; the timing accident is now guarded
+
+`grep -rn 587 public/ content/ data/dist/` finds only coincidental
+IDs; the claim lived in code comments and `tools/shipped.toml`'s
+shenoute note in commit `75a9057`'s tree — a tree that was never
+built-and-deployed alone (`75a9057`+`cd98e37` shipped in one push,
+so the deploy built from the corrected tree). The emitted
+`meta.json` on disk AND live both read "21 of 1,078". New
+`tools/validate/corpus_claim_guard.py` checks every numeric
+real-English claim in shipped.toml notes, emitted meta.json files,
+and content pages against the tarball truth (21 real / 566 "..." /
+491 empty of 1,078); negative demonstrated (21→587 fails with "the
+tarball has 21"); wired into `tools/build.py` after
+`corpus_shape_guard` so the next stale claim fails the build.
+
+### D2: Lighthouse refresh — ten routes, no findings
+
+`npx lighthouse` 13.5.0 against the deployment hostname:
+`/` 100/100/100/63, `/dict/` 94, `/corpus/sahidic_ruth/` 96,
+`/quiz/` 99, `/drill/` 100, `/course/` 97, `/write/` 100,
+`/speak/` 100, `/anki/` 98, `/grammar-claims/` 98 (perf; a11y 100
+everywhere, best-practices 100 everywhere). No a11y<90 or perf<85
+findings. The uniform SEO 63 is Cloudflare's automatic
+`x-robots-tag: noindex` on deployment hostnames — the apex carries
+none; a measurement artifact, not a defect.
+
+### D3: deep POST_DEPLOY — 16/16 against 0bf66db6
+
+Every checklist item re-run: 25 routes + 7 works + negative control
+(soft-404, no marker); manifest matches local (303 files, same bytes,
+same generated); SW registers on `/`, `/dict/`, `/corpus/`; offline
+`/dict/` renders 11,369 entries from cache; Pagefind `ⲧⲉⲛⲟⲩ` → 2
+hits; English workaround (`copper` via `/dict/`) → 19 hits; dict
+edge cases (exact entry + U+2C83+U+FE26 strip → 297); corpus round
+trip (Ruth: token → panel → dict entry → worklink back, 85 verses /
+3,470 tokens); Anki decks valid sqlite (quiz 959 notes, drill 3,631);
+favicon real ICO bytes (magic `00 00 01 00`, 277 B,
+`image/vnd.microsoft.icon`); HTML `s-maxage=60`, SW-allowed, assets
+`max-age=31536000`, CSP + nosniff; gzip intact; zero `[object Object]`
+in any response; zero console errors on `/`, `/dict/`, `/course/`.
+
+### D4: the alias is safe; git-build remains Michael's
+
+The three curls on the apex (`/favicon.ico`, `/lessons/16/`,
+`/speak/`) all 200; the apex manifest is byte-identical to the
+deployment's (303 files, `generated 2026-10-19T12:34:53Z`,
+collation `b7b49af6`) — the alias serves the wrangler upload, not a
+git build. That answers the brief's caution ("'alias still serves'
+could mean the git build failed silently"): the alias is on the
+direct upload. Why git-connected builds produce empty deployments
+is still open — Michael's investigation, as carried since Session 24.
+
+### D5: battery 471, build green with the new guard in-pipeline
+
+471 passed / 22 skipped / 1 xfailed (+5 new tests). Full build:
+279 files / 15,765,927 B, guard PASSED, `corpus_claim_guard` OK in
+the pipeline. Post-build manifest differs from the deployed one only
+in `generated` (input-mtime derived — the `build.py` edit bumped it);
+file set, bytes, and collation identical, so no redeploy. All 29
+`tools/validate/*.py` + `fetch_work --check` rc=0.
+
+### D6: commit, push held until D4, then one push
+
+D0–D5 committed as `422d063` ("test(guard): E39 disproved, E38
+guarded"); push was held until D4 cleared the alias (C5); docs and
+fixes pushed together after D7, alias re-probed after the push (E36:
+deploy stays the last act whenever a deploy happens — none was needed
+this session; no site bytes changed).
+
+### D7: docs (this section and its companions)
+
+PLAN-ERRATA E38/E39 resolutions (587 never shipped + guard; the
+typed-Coptic premise overturned); COVERAGE Session 26 rows; SHIP
+production-verification section refreshed to Session 26 (deep
+PASS 16/16, Lighthouse table, alias-safe conclusion). Historical
+session-status sections (README Session 25, SHIP Session 24
+receipts) left as written — true when written.

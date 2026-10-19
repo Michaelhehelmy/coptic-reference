@@ -617,6 +617,13 @@ meta.json and the corpus pages), corpus_text_guard's comment, and
 test_tt_parser's comment. The parser deliberately still parses "..." as
 it finds it — normalizing would be a data change, not a comment fix.
 
+**Resolved (Session 26 D1):** the claim never reached a shipped
+artifact — `75a9057`'s tree was never built-and-deployed alone
+(`75a9057`+`cd98e37` shipped in one push). `corpus_claim_guard.py`
+now checks every numeric real-English claim in shipped.toml notes,
+emitted meta.json, and content pages against the tarball; the timing
+accident no longer needs remembering.
+
 ### E39 — exact Coptic cannot be typed through this interface
 
 Writing a crasis (five contiguous codepoints) or a macron (a letter +
@@ -626,6 +633,17 @@ spacing. The working tactic: inject exact strings programmatically with
 verifies them by normalized form either way. Anything future sessions
 must reproduce exactly (crasis tokens, combining marks) should be built
 from codepoints, not typed.
+
+**Overturned (Session 26 D0):** the premise was wrong. The write
+tool, the filesystem, Playwright typing, `fill()`, and the live
+deployment all round-trip exact codepoints — including macrons and
+crasis. The "mangling" was hex escapes hand-typed from memory in the
+construction itself (`\u2c89` for U+2CA9, `\u2e43` for U+03E3),
+demonstrated by the first repro typing a word the index does not
+contain. The chr() tactic is harmless but unnecessary; the real rule
+is never construct Coptic from hand-typed hex — take literals from
+data or type them verbatim (both proven faithful).
+`playwright/test_typed_coptic.py` and behavior test 7 pin this.
 
 ### E40 — the lesson-16/17 dative claim lost its evidence
 
