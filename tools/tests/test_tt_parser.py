@@ -327,7 +327,7 @@ def test_real_shenoute_file_parses_with_segments():
     assert len(doc.verses) == expected
     assert all(v.tokens for v in doc.verses)
     # GF17-18 specifically has 0/22 aligned segments (the source's "…"
-    # placeholder); other files in the work carry real English (587/1,078
+    # placeholder); other files in the work carry real English (21/1,078
     # across the work — alignment = "partial").
     assert all(v.translation is None for v in doc.verses), \
         "GF17-18 carries only the source's '…' placeholder, not a translation"

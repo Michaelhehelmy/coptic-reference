@@ -95,7 +95,8 @@ alignment = "none"
 # the corpus of record (KNOWN_ABSENT_UPSTREAM in tools/fetch/fetch_work.py), so
 # the closed order has reached P2.4 and this switch is ON. The segmentation has
 # NOT yet been signed off by a linguist -- the work ships as text-only Coptic
-# with PARTIAL English (587/1,078 aligned segments) FOR EXPERT REVIEW, and the
+# with PARTIAL English (21/1,078 segments with real translation) FOR EXPERT
+# REVIEW, and the
 # /dialects coverage badge and the expert-review packet must say so. Flipping
 # back is still a one-word diff.
 
@@ -107,4 +108,4 @@ dialect = "S"
 urn = "urn:cts:copticLit:saecul.monasticum.shenoute.eagerness"
 shipped = true
 alignment = "partial"
-note = "SHIPPED (Session 25) pending linguist sign-off on the segmentation. 587 of 1,078 segments carry an aligned English translation; the rest are the source's '…' placeholder. Hardest grammar in the project, deliberately last in the roll-out order."
+note = "SHIPPED (Session 25) pending linguist sign-off on the segmentation. 21 of 1,078 segments carry real English; the rest carry the source's ellipsis placeholder. Hardest grammar in the project, deliberately last in the roll-out order."

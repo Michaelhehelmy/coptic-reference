@@ -8,7 +8,7 @@ url: /expert-review-packet/
 This page gathers **every open expert-verdict item in the site** into one
 place, so a Copticist can review the whole backlog offline, in one sitting,
 and respond without an account on this site. It has two parts: the grammar
-claims register (lessons 1–15) and the POS labels register (eight tags).
+claims register (lessons 1–20) and the POS labels register (eight tags).
 Both registers — `content/GRAMMAR_CLAIMS.md` and
 `content/POS_LABELS_REVIEW.md` — are the source of truth; this packet
 mirrors their tables line for line, and a test
@@ -47,12 +47,13 @@ No part of the build, deploy, or guard suite waits on a verdict.
 
 ## Evidence the reviewer is being asked to judge against
 
-- **Corpus:** six parsed works — Bohairic Mark, Sahidic Ruth, 1
-  Corinthians, Life of Isaac, Martyrdom of Victor, Lausiac History —
+- **Corpus:** seven parsed works — Bohairic Mark, Sahidic Ruth, 1
+  Corinthians, Life of Isaac, Martyrdom of Victor, Lausiac History,
+  and Shenoute's Eagerness —
   shipped as `data/dist/corpus/corpus.tar.gz`, collation hash
   `b7b49af6e144ef87`. Token counts and top-form tables in the POS register
-  were measured against that tarball in Session 22; they are observations,
-  not confirmations.
+  were re-measured against that tarball in Session 25, when the seventh
+  work shipped; they are observations, not confirmations.
 - **Glosses are already machine-checked** (`lesson_vocab_guard.py`, Rule
   14): a taught word pair that the dictionary does not support fails the
   build. Grammar and part-of-speech claims are precisely the residue that
@@ -90,6 +91,14 @@ verdict slot that stays blank until a reviewer fills it.
 | 13 | Direct discourse follows speaker–verb–speech order; the quoting verb never moves | Speech introductions in Victor 1–4 | |
 | 14 | Nominal sentences state equivalence with no copula ("X is Y" with no "is") | Verbless clauses in Lausiac History 1–4 | |
 | 15 | (Restates lesson 1 on ⲁ ⲥ ϣⲱⲡⲉ; no new claims) | See lesson 01 | |
+| 16 | Circumstantial ⲉⲣⲉ opens a dependent frame; the main clause follows it | Shenoute 95 (aligned English) and 309 (Coptic-only): the ⲉⲣⲉ-clause stands before its main clause | |
+| 16 | Temporal ⲙⲡⲁⲧⲉ places one event before another ("before") | Shenoute 75 and 357, both Coptic-only segments with no English in either | |
+| 17 | Fronted possessive: ⲙ̄/ⲛⲧⲉ stand before the phrase where English tacks "of" onto the end | Shenoute 100 vs English "a snare of the devil" (one unit, ⲛⲧⲉ at its heart) | |
+| 17 | The bare dative ⲛⲁ ⲛ rides after the verb with no separate preposition ("to us") | Shenoute 102: Coptic ⲛⲁ ⲛ vs English "give it to us" | |
+| 17 | (Restates lesson 09: destination opens with ⲉϩⲣⲁⲓ ⲉ) | Shenoute 100 vs English "down to a snare"; see lesson 09 | |
+| 18 | (No new grammar claims; codex segmentation and reading method only) | — | |
+| 19 | (No new grammar claims; reading method only) | — | |
+| 20 | (No new grammar claims; orientation only) | — | |
 
 ## Part B — POS labels register (mirror of `content/POS_LABELS_REVIEW.md`)
 
@@ -101,14 +110,14 @@ and the source that would confirm or correct the label.
 
 | Tag | Proposed label | Corpus evidence already in hand | Source that would confirm | Verdict (blank until reviewed) |
 |---|---|---|---|---|
-| VBD | past-tense verb | 457 tokens; ⲡⲉϫⲁ (287), ⲡⲉϫⲉ (68), ⲛⲁⲛⲉ (38), ⲡⲉϫⲱ (27); functions root/parataxis/conj — the narrative-past class, not a general past | Lambdin 1983, lessons on ⲡⲉϫⲉ / ⲡⲉϫⲁ; Layton 2000, past-tenses chapter — confirm whether every VBD form is an old-perfective stem, and whether "past-tense verb" should say "narrative past" | |
-| PPERI | independent pronoun (for emphasis) | 454 tokens; ⲁⲛⲟⲕ (133), ⲛⲑⲟϥ (82), ⲛⲑⲱⲧⲉⲛ (43), ⲁⲛⲟⲛ (36); mostly UD function dislocated (256) — matches the label | Layton 2000, independent-pronoun section; confirm the label covers dislocated positions, not only contrastive emphasis | |
-| IMOD | modifier | 461 tokens; ⲧⲏⲣ (274), ϩⲱ (68), ⲥⲁⲧⲟⲧ (62), ⲙⲙⲁⲩⲁⲧ (29); functions obl:unmarked / nmod:unmarked — post-nominal modifiers, not adjectives | Polis & Lungu / Coptic Scriptorium annotation guidelines for IMOD; Layton on nominal modification — decide whether the label should name the post-nominal position | |
-| FM | focus particle (only, just) | 38 tokens; ⲟⲩ (8), ⲙⲟⲛⲟⲛ (3), ⲧⲟⲩ (2), ⲕⲉ (1) — the forms are heterogeneous and ⲙⲟⲛⲟⲛ is a MINORITY; "only, just" may be too narrow for the class | Coptic Scriptorium / UD Coptic tagset definition of FM; corpus check: what do the ⲟⲩ / ⲧⲟⲩ / ⲕⲉ FM tokens align to in English? — the label may need widening beyond "only, just" | |
-| APREC | temporal marker (when) | 384 tokens; ⲉⲧ (351), ⲛ̅ⲧⲉⲣⲉ (12), ⲛ̅ⲧⲉⲣ (7), ⲛⲧⲉⲣⲉ (5); functions aux/mark — ⲉⲧ dominates, not ⲛⲧⲉⲣⲉ | Layton 2000, temporal ⲉⲧ vs relative ⲉⲧ (compare CREL); confirm APREC-ⲉⲧ is distinct from CREL-ⲉⲧ in annotation practice | |
-| AOPT | wish marker (may it be) | 11 tokens; ⲉⲣⲉ only; functions aux/mark — tiny class, label is name-read from the tag string | Layton 2000, imperative and optative (the lesson 07 reading); 11 tokens cannot confirm a gloss — the grammar must | |
-| AAOR | habitual marker (usually) | 140 tokens; ϣⲁ (115), ϣⲁⲣⲉ (25); functions aux/case — the aoristic-habitual class the label names | Layton 2000, aoristic / habitual ⲛⲧⲉⲣⲉ–ϣⲁⲣⲉ; confirm ϣⲁ (uninflected) belongs to the same class as ϣⲁⲣⲉ | |
-| AFUTCONJ | future conjunctive marker | 2 tokens; ⲧⲁⲣⲉ only; functions case/aux — two tokens cannot confirm anything | Coptic Scriptorium / UD Coptic tagset documentation for AFUTCONJ; the tag name itself is the only current source — a 2-token class should stay name-read until documented | |
+| VBD | past-tense verb | 494 tokens; ⲡⲉϫⲁ (291), ⲡⲉϫⲉ (72), ⲛⲁⲛⲉ (38), ⲡⲉϫⲱ (27); functions root/parataxis/conj — the narrative-past class, not a general past | Lambdin 1983, lessons on ⲡⲉϫⲉ / ⲡⲉϫⲁ; Layton 2000, past-tenses chapter — confirm whether every VBD form is an old-perfective stem, and whether "past-tense verb" should say "narrative past" | |
+| PPERI | independent pronoun (for emphasis) | 539 tokens; ⲁⲛⲟⲕ (140), ⲛⲑⲟϥ (82), ⲁⲛⲟⲛ (47), ⲛⲑⲱⲧⲉⲛ (43); mostly UD function dislocated (282) — matches the label | Layton 2000, independent-pronoun section; confirm the label covers dislocated positions, not only contrastive emphasis | |
+| IMOD | modifier | 563 tokens; ⲧⲏⲣ (313), ϩⲱ (72), ⲥⲁⲧⲟⲧ (62), ϩⲱⲱ (38); functions obl:unmarked / nmod:unmarked — post-nominal modifiers, not adjectives | Polis & Lungu / Coptic Scriptorium annotation guidelines for IMOD; Layton on nominal modification — decide whether the label should name the post-nominal position | |
+| FM | focus particle (only, just) | 50 tokens; ⲟⲩ (13), ⲙⲟⲛⲟⲛ (6), ⲁⲗⲗⲟ (3), ⲧⲟⲩ (2) — the forms are heterogeneous and ⲙⲟⲛⲟⲛ is a MINORITY; "only, just" may be too narrow for the class | Coptic Scriptorium / UD Coptic tagset definition of FM; corpus check: what do the ⲟⲩ / ⲧⲟⲩ / ⲕⲉ FM tokens align to in English? — the label may need widening beyond "only, just" | |
+| APREC | temporal marker (when) | 388 tokens; ⲉⲧ (351), ⲛ̅ⲧⲉⲣⲉ (12), ⲛⲧⲉⲣⲉ (8), ⲛ̅ⲧⲉⲣ (7); functions aux/mark — ⲉⲧ dominates, not ⲛⲧⲉⲣⲉ | Layton 2000, temporal ⲉⲧ vs relative ⲉⲧ (compare CREL); confirm APREC-ⲉⲧ is distinct from CREL-ⲉⲧ in annotation practice | |
+| AOPT | wish marker (may it be) | 13 tokens; ⲉⲣⲉ only; functions aux/mark — tiny class, label is name-read from the tag string | Layton 2000, imperative and optative (the lesson 07 reading); 11 tokens cannot confirm a gloss — the grammar must | |
+| AAOR | habitual marker (usually) | 163 tokens; ϣⲁ (132), ϣⲁⲣⲉ (31); functions aux/case — the aoristic-habitual class the label names | Layton 2000, aoristic / habitual ⲛⲧⲉⲣⲉ–ϣⲁⲣⲉ; confirm ϣⲁ (uninflected) belongs to the same class as ϣⲁⲣⲉ | |
+| AFUTCONJ | future conjunctive marker | 6 tokens; ⲧⲁⲣ (3), ⲧⲁⲣⲉ (2), ⲧⲁⲣ︤ (1); functions case/aux — six tokens cannot confirm anything | Coptic Scriptorium / UD Coptic tagset documentation for AFUTCONJ; the tag name itself is the only current source — a 6-token class should stay name-read until documented | |
 
 ## Part C — what happens after a verdict
 

@@ -47,6 +47,7 @@ WORKS = {
     "life_of_isaac":          ("1", 406, 16298),
     "martyrdom_of_victor":    ("1", 836, 17826),
     "sahidic_ruth":           ("Ruth 1:1", 85, 3470),
+    "shenoute_eagerness":     ("GF17:1", 1078, 16625),
 }
 
 pytestmark = pytest.mark.skipif(
@@ -175,8 +176,16 @@ def test_every_work_renders_a_known_verse(slug, page):
     # The ref is still DISPLAYED even though it is not the identity.
     assert first["ref"] in p.inner_text(f"section.verse#{anchor} h2"), (
         f"{slug}: the human-readable ref {first['ref']!r} is no longer shown")
-    assert p.locator(f"section.verse#{anchor} .en").inner_text().strip(), (
-        f"{slug}: first verse has no English text")
+    # The reader must show English when the source printed any. Shenoute's
+    # Eagerness ships partial English (Session 25 D1: 21 of 1,078 segments),
+    # and its first verse is one of the silent ones — so probe the first
+    # verse that HAS English rather than assuming verse 0 has some.
+    probe = next((v for v in verses if (v.get("en") or "").strip()), None)
+    assert probe is not None, f"{slug}: no verse in the work carries English"
+    probe_anchor = _anchor(probe["verse_index"])
+    assert p.locator(f"section.verse#{probe_anchor} .en").inner_text().strip(), (
+        f"{slug}: verse {probe['ref']!r} carries English in text.json but the "
+        f"reader rendered it empty")
 
 
 @pytest.mark.parametrize("slug", _PARAMS)
@@ -243,8 +252,8 @@ def test_every_work_token_opens_the_right_dictionary_entry(slug, page):
         f"expected {want!r}")
 
 
-def test_all_six_works_are_present(page):
-    """The six works in tools/shipped.toml are all routed. A missing one is a
+def test_all_shipped_works_are_present(page):
+    """Every work in the published corpus is routed. A missing one is a
     silent hole: the index page would just have one fewer row."""
     p, ctx, server = page
     p.goto(f"{server}/corpus/")

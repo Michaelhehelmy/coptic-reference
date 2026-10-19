@@ -154,9 +154,11 @@ def parse_tt(path: Path, *, min_verses: int = 1) -> Document:
     # ZERO <verse_vid>. Shenoute's discourses are not chapter-and-verse texts;
     # the corpus encodes them as codex pages (<pb_xml_id>) subdivided into
     # <translation> segments — the same structural slot that carries the
-    # aligned English in biblical works. 587 of 1,078 segments carry real
-    # English (Brakke/Crislip etc.); the rest carry the source's "…"
-    # placeholder (alignment = "partial" in tools/shipped.toml).
+    # aligned English in biblical works. Session 25 D5 recount (was 587,
+    # which counted populated `en` including the source's ASCII "..."
+    # placeholder): 21 of 1,078 segments carry real English; 566 carry the
+    # source's "..." placeholder as their en text and 491 its "…"
+    # (normalized to None below) (alignment = "partial" in shipped.toml).
     #
     # So in this shape a <translation> pair IS the verse boundary: it opens the
     # Verse and closes it. The first time corpus_tarball met these files every

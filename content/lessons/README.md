@@ -4,8 +4,9 @@ title: "Structured course plan — Session 19 D3"
 
 # Structured course plan — Session 19 D3
 
-Fifteen lessons, beginner to intermediate, Sahidic narrative first (Ruth),
-then Bohairic gospel (Mark), then letters, lives, and martyrdom. Every
+Twenty lessons, beginner to advanced, Sahidic narrative first (Ruth),
+then Bohairic gospel (Mark), then letters, lives, and martyrdom, and
+Shenoute's own discourse last. Every
 machine-readable field below reappears as front matter in
 `content/lessons/NN.md` and in `data/dist/course/course.json.gz`, emitted by
 `tools/emit/coursegen.py`. No per-item data ships in the course file: the
@@ -143,3 +144,45 @@ finish, with the dictionary. vocabulary (review, 20 most frequent lexical):
 ⲥϩⲓⲙⲉ ⲕⲁϩ. quiz: {band: beginner, pos: N}. drill:
 {work: sahidic_ruth, verse_min: 50, verse_max: 84}. corpus:
 {work: sahidic_ruth, verse_start: 80, verse_end: 84}. checkpoint: quiz ≥ 70%.
+
+## Advanced — Shenoute and the whole shelf (lessons 16–20, Session 25 D2)
+
+### Lesson 16 — The circumstance before the main clause
+prerequisite: 15. reading: Layton, circumstantial conversion; Till,
+temporal clauses. vocabulary (intermediate, ADV): ⲙⲁⲗⲗⲟⲛ ⲡⲁⲗⲓⲛ ⲕⲁⲗⲱⲥ ⲉⲧⲓ
+ⲁⲗⲏⲑⲱⲥ ⲙⲙⲁⲧⲉ ⲗⲟⲓⲡⲟⲛ ⲣⲱ ⲙⲁⲗⲓⲥⲧⲁ ⲉⲙⲁⲧⲉ ϣⲁϩⲣⲁⲓ ⲑⲱⲛ ⲧⲱⲛ ⲙⲟⲛⲟⲛ. quiz: {band:
+intermediate, pos: ADV}. drill: {work: shenoute_eagerness, verse_min: 0,
+verse_max: 119}. corpus: {work: shenoute_eagerness, verse_start: 95,
+verse_end: 98}. checkpoint: quiz ≥ 70%.
+
+### Lesson 17 — The prepositional phrase: of, to, and whose
+prerequisite: 16. reading: Layton, prepositions and adverbial phrases;
+Lambdin, dative pronouns. vocabulary (advanced, N): ⲙⲛⲧⲣⲉ ⲣⲉϥϫⲓⲟⲩⲉ
+ⲙⲛⲧϫⲁϫⲉ ⲅⲛⲱⲙⲏ ⲉⲑⲛⲟⲥ ⲟⲓⲕⲟⲛⲟⲙⲟⲥ ⲣⲉⲙϩⲉ ϩⲟϥ ⲥⲓⲟⲩ ⲁⲡⲁⲣⲭⲏ ⲉⲝⲟⲩⲥⲓⲁ ⲙⲁⲥⲧⲓⲅⲝ ⲗⲁⲕϩ
+ⲁⲡⲟⲥⲧⲁⲧⲏⲥ. quiz: {band: advanced, pos: N}. drill: {work:
+shenoute_eagerness, verse_min: 120, verse_max: 239}. corpus: {work:
+shenoute_eagerness, verse_start: 100, verse_end: 103}. checkpoint: quiz
+≥ 70%.
+
+### Lesson 18 — Shenoute arrives: a seventh work
+prerequisite: 17. reading: No new reading: Shenoute 82–85 in Sahidic.
+vocabulary (advanced, V): ⲣϣⲟⲣⲡ ϭⲛⲁⲣⲓⲕⲉ ⲣϩⲙⲟⲧ ⲕⲱⲙϣ ⲛⲟⲉⲓ ⲁⲡⲁⲧⲁ ϥⲱϭⲉ ⲕⲁⲙⲁ
+ⲣϩⲟⲩⲟ ⲧⲗⲧⲗ. quiz: {band: advanced, pos: V}. drill: {work:
+shenoute_eagerness, verse_min: 240, verse_max: 419}. corpus: {work:
+shenoute_eagerness, verse_start: 82, verse_end: 85}. checkpoint: quiz ≥
+70%.
+
+### Lesson 19 — Reading alone: a Shenoute pericope
+prerequisite: 18. reading: No new reading: Shenoute 89–93 in Sahidic.
+vocabulary (beginner, N): ⲛⲟⲩⲧⲉ ϩⲉ ⲣⲱⲙⲉ ϩⲱⲃ ϣⲁϫⲉ ϩⲏⲧ ⲏⲓ ⲡⲟⲛⲏⲣⲟⲛ ⲉⲣⲏⲩ
+ⲣⲁⲛ. quiz: {band: beginner, pos: N}. drill: {work: shenoute_eagerness,
+verse_min: 420, verse_max: 659}. corpus: {work: shenoute_eagerness,
+verse_start: 89, verse_end: 93}. checkpoint: quiz ≥ 70%.
+
+### Lesson 20 — Reading ahead: the whole shelf
+prerequisite: 19. reading: No new reading: all seven works in the corpus
+reader. vocabulary (intermediate, V): ⲣϩⲟⲧⲉ ϣⲓⲛⲉ ϫⲉⲙϫⲟⲙ ϩⲱⲗ ⲕⲧⲟ ⲉⲛⲕⲟⲧ
+ⲟⲩⲱϣⲧ ⲟⲩⲱϣⲃ ⲙⲡϣⲁ ϣⲗⲏⲗ ϩⲁⲣⲉϩ ϭⲓⲛⲉ ϫⲡⲟ ϣⲟⲩϣⲟⲩ. quiz: {band: intermediate,
+pos: V}. drill: {work: lausiac_history, verse_min: 50, verse_max: 149}.
+corpus: {work: lausiac_history, verse_start: 4, verse_end: 7}.
+checkpoint: quiz ≥ 70%.

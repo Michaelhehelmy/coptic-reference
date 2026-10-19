@@ -87,8 +87,9 @@ def main(argv: list[str] | None = None) -> int:
             # Session 25 D1. Coptic is never allowed blank — that is the S4-C1
             # bug this guard exists for. English is different: a work can
             # honestly have segments with no aligned translation. shenoute_eagerness
-            # ships 587 of 1,078 segments with English and the rest the source's
-            # "…" placeholder (alignment = "partial"), so blank en is reported as
+            # ships real English on 21 of 1,078 segments; 566 more carry the
+            # source's ASCII "..." placeholder as their en text and 491 its "…"
+            # (blank en, the count below) (alignment = "partial"), so blank en is reported as
             # INFO there, not as a failure. For "full" and "none" works the rule
             # is unchanged: every verse must carry English, and a lost
             # pending_translation still fails here. LIMIT, stated not hidden: on

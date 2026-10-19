@@ -2,12 +2,12 @@
 """tools/emit/coursegen.py — the structured course file (Session 19 D4).
 
 Reads `content/lessons/*.md` front matter, emits
-`data/dist/course/course.json.gz`: the 15 lessons in order, each with its
+`data/dist/course/course.json.gz`: the 20 lessons in order, each with its
 filters. No per-item data ships here — quizzes and drills are fetched by the
 client from their own banks based on these filters, exactly as `/quiz/` and
 `/drill/` do today; the course only chains them.
 
-Shape validated here (15 lessons, 1–15 ordered, prerequisite chain,
+Shape validated here (20 lessons, 1–20 ordered, prerequisite chain,
 threshold range, non-empty filters); traceability to data (verse bounds,
 vocab lemmas in the corpus, banks present) is `course_guard.py`'s job.
 
@@ -77,8 +77,8 @@ def read_lessons(lessons_dir: pathlib.Path = LESSONS_DIR) -> list[dict]:
 
 def check_shape(lessons: list[dict]) -> None:
     """Course shape. Traceability to data is course_guard.py."""
-    if len(lessons) != 15:
-        raise fail(f"expected 15 lessons, found {len(lessons)}")
+    if len(lessons) != 20:
+        raise fail(f"expected 20 lessons, found {len(lessons)}")
     for position, lesson in enumerate(lessons, 1):
         where = lesson.get("_source", "?")
         if lesson.get("number") != position:
@@ -133,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         COURSE_DIR / "course.json.gz",
         gzip.compress(json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                       compresslevel=9, mtime=0))
-    print(f"[coursegen] 15 lessons -> course.json.gz ({size:,} B gz)")
+    print(f"[coursegen] 20 lessons -> course.json.gz ({size:,} B gz)")
     return 0
 
 

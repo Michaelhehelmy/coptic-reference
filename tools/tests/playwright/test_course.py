@@ -75,7 +75,7 @@ def test_lesson_1_checkpoint_unlocks_lesson_2(page):
     session = _checkpoint_session(server, lesson)
     assert len(session) == 10, "checkpoint pool too small to test"
     lessons = p.locator("#course-lessons .course-lesson")
-    assert lessons.count() == 15
+    assert lessons.count() == 20
     lessons.nth(0).locator("button").first.click()
     for item in session:
         p.wait_for_selector("#course-checkpoint .hits button.hit", timeout=25000)

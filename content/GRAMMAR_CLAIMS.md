@@ -37,3 +37,11 @@ confirmed.
 | 13 | Direct discourse follows speaker–verb–speech order; the quoting verb never moves | Speech introductions in Victor 1–4 | |
 | 14 | Nominal sentences state equivalence with no copula ("X is Y" with no "is") | Verbless clauses in Lausiac History 1–4 | |
 | 15 | (Restates lesson 1 on ⲁ ⲥ ϣⲱⲡⲉ; no new claims) | See lesson 01 | |
+| 16 | Circumstantial ⲉⲣⲉ opens a dependent frame; the main clause follows it | Shenoute 95 (aligned English) and 309 (Coptic-only): the ⲉⲣⲉ-clause stands before its main clause | |
+| 16 | Temporal ⲙⲡⲁⲧⲉ places one event before another ("before") | Shenoute 75 and 357, both Coptic-only segments with no English in either | |
+| 17 | Fronted possessive: ⲙ̄/ⲛⲧⲉ stand before the phrase where English tacks "of" onto the end | Shenoute 100 vs English "a snare of the devil" (one unit, ⲛⲧⲉ at its heart) | |
+| 17 | The bare dative ⲛⲁ ⲛ rides after the verb with no separate preposition ("to us") | Shenoute 102: Coptic ⲛⲁ ⲛ vs English "give it to us" | |
+| 17 | (Restates lesson 09: destination opens with ⲉϩⲣⲁⲓ ⲉ) | Shenoute 100 vs English "down to a snare"; see lesson 09 | |
+| 18 | (No new grammar claims; codex segmentation and reading method only) | — | |
+| 19 | (No new grammar claims; reading method only) | — | |
+| 20 | (No new grammar claims; orientation only) | — | |

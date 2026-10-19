@@ -82,7 +82,7 @@
     if (!course || typeof course !== "object" || !Array.isArray(course.lessons)) {
       throw new Error("course file is not a course");
     }
-    if (course.lessons.length !== 15) throw new Error("course has no 15 lessons");
+    if (course.lessons.length !== 20) throw new Error("course has no 20 lessons");
     course.lessons.forEach(function (lesson, index) {
       if (!lesson || lesson.number !== index + 1) {
         throw new Error("lesson order is broken at position " + index);
@@ -286,13 +286,13 @@
     FetchJson.json(COURSE_URL).then(function (course) {
       validateCourse(course);
       renderLessonList(course, progress, host);
-      if (status) status.textContent = "Fifteen lessons. Pass each checkpoint to unlock the next.";
+      if (status) status.textContent = "Twenty lessons. Pass each checkpoint to unlock the next.";
       var all = $("course-unlock-all");
       if (all && !all.dataset.wired) {
         all.dataset.wired = "1";
         all.addEventListener("click", function () {
           var next = loadProgress();
-          for (var n = 1; n <= 15; n += 1) next.passed[String(n)] = true;
+          for (var n = 1; n <= 20; n += 1) next.passed[String(n)] = true;
           saveProgress(next);
           init();
         });

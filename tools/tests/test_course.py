@@ -38,16 +38,16 @@ def _front_matters() -> dict[int, dict]:
     return out
 
 
-def test_course_has_fifteen_ordered_lessons():
+def test_course_has_twenty_ordered_lessons():
     course = _course()
-    assert [lesson["number"] for lesson in course["lessons"]] == list(range(1, 16))
+    assert [lesson["number"] for lesson in course["lessons"]] == list(range(1, 21))
 
 
 def test_front_matter_matches_the_emitted_course():
     """coursegen fidelity: what Hugo renders is what the client chains."""
     course = _course()
     front = _front_matters()
-    assert sorted(front) == list(range(1, 16))
+    assert sorted(front) == list(range(1, 21))
     for lesson in course["lessons"]:
         source = front[lesson["number"]]
         for field in ("title", "prerequisite", "reading", "vocabulary",
@@ -56,8 +56,8 @@ def test_front_matter_matches_the_emitted_course():
 
 
 def test_lesson_pages_carry_real_prose_or_an_honest_todo():
-    """Lessons 1–5 teach; 6–15 say TODO and ship their filters anyway."""
-    for number in range(1, 16):
+    """Every lesson teaches: at least 150 words of body and no TODO claim."""
+    for number in range(1, 21):
         path = ROOT / "content" / "lessons" / f"{number:02d}.md"
         body = path.read_text(encoding="utf-8").split("---", 2)[2]
         words = len(body.split())
@@ -66,13 +66,13 @@ def test_lesson_pages_carry_real_prose_or_an_honest_todo():
 
 
 def test_no_js_lesson_list_matches_the_course():
-    """The fallback names the same fifteen lessons the client would chain."""
+    """The fallback names the same twenty lessons the client would chain."""
     course = _course()
     template = (ROOT / "themes" / "copticref" / "layouts" / "course" / "list.html"
                 ).read_text(encoding="utf-8")
     noscript = template.split("<noscript", 1)[1].split("</noscript>", 1)[0]
     listed = re.findall(r"<li>(.*?)</li>", noscript)
-    assert len(listed) == 15, listed
+    assert len(listed) == 20, listed
     for lesson, title in zip(course["lessons"], listed):
         assert lesson["title"].split("—", 1)[-1].strip() == title.strip(), \
             (lesson["number"], title)
